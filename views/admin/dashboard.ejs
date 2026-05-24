@@ -12,6 +12,7 @@
       <a href="/admin/users" class="btn btn-outline-danger">Users</a>
       <a href="/admin/listings" class="btn btn-outline-danger">Listings</a>
       <a href="/admin/bookings" class="btn btn-outline-danger">Bookings</a>
+      <a href="/admin/reviews" class="btn btn-outline-danger">Reviews Queue</a>
     </div>
   </div>
 </div>
@@ -87,6 +88,21 @@
         </div>
         <div class="fs-1 opacity-50">
           <i class="fa-solid fa-receipt"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card border-0 shadow-sm rounded-4 bg-danger-subtle text-danger-emphasis h-100">
+      <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="fs-6 fw-semibold text-uppercase tracking-wider opacity-75">Flagged Reviews</span>
+          <h2 class="fw-extrabold mt-2 mb-0"><%= totalFlaggedReviews.toLocaleString() %></h2>
+          <a href="/admin/reviews" class="small text-danger-emphasis fw-bold text-decoration-none mt-2 d-inline-block">Moderate Queue <i class="fa-solid fa-arrow-right fs-8 ms-1"></i></a>
+        </div>
+        <div class="fs-1 opacity-50">
+          <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
       </div>
     </div>

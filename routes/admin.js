@@ -37,6 +37,9 @@ router.get(
       .sort({ createdAt: -1 })
       .limit(10);
 
+    const Review = require("../models/review");
+    const totalFlaggedReviews = await Review.countDocuments({ flagged: true });
+
     res.render("admin/dashboard", {
       totalUsers,
       totalListings,
@@ -44,6 +47,7 @@ router.get(
       totalRevenue,
       totalRefunded,
       recentBookings,
+      totalFlaggedReviews,
     });
   })
 );
@@ -152,6 +156,62 @@ router.get(
       .populate("user")
       .sort({ createdAt: -1 });
     res.render("admin/bookings", { allBookings });
+  })
+);
+
+// ─── GET /admin/reviews (Flagged Reviews Queue) ──────────────────────────────
+router.get(
+  "/reviews",
+  isAdmin,
+  wrapAsync(async (req, res) => {
+    const Review = require("../models/review");
+    const flaggedReviews = await Review.find({ flagged: true })
+      .populate("author", "username email")
+      .sort({ createdAt: -1 });
+
+    const enhancedReviews = [];
+    for (let review of flaggedReviews) {
+      const parentListing = await Listing.findOne({ reviews: review._id }).select("title location country");
+      enhancedReviews.push({
+        ...review.toObject(),
+        listing: parentListing
+      });
+    }
+
+    res.render("admin/reviews", { flaggedReviews: enhancedReviews });
+  })
+);
+
+// ─── POST /admin/reviews/:reviewId/approve ───────────────────────────────────
+router.post(
+  "/reviews/:reviewId/approve",
+  isAdmin,
+  wrapAsync(async (req, res) => {
+    const Review = require("../models/review");
+    const review = await Review.findById(req.params.reviewId);
+    if (!review) {
+      req.flash("error", "Review not found.");
+      return res.redirect("/admin/reviews");
+    }
+    review.flagged = false;
+    review.flaggedReason = "";
+    await review.save();
+    req.flash("success", "Review approved and flag dismissed successfully! 🎉");
+    res.redirect("/admin/reviews");
+  })
+);
+
+// ─── DELETE /admin/reviews/:reviewId ─────────────────────────────────────────
+router.delete(
+  "/reviews/:reviewId",
+  isAdmin,
+  wrapAsync(async (req, res) => {
+    const { reviewId } = req.params;
+    const Review = require("../models/review");
+    await Listing.updateOne({ reviews: reviewId }, { $pull: { reviews: reviewId } });
+    await Review.findByIdAndDelete(reviewId);
+    req.flash("success", "Flagged review deleted permanently.");
+    res.redirect("/admin/reviews");
   })
 );
 

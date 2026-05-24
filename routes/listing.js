@@ -124,9 +124,16 @@ router.get("/:id", wrapAsync(async (req, res) => {
     req.flash("error", "Invalid Listing ID");
     return res.redirect("/listings");
   }
+
+  const matchObj = {};
+  if (!req.user || req.user.role !== "admin") {
+    matchObj.flagged = { $ne: true };
+  }
+
   const listing = await Listing.findById(id)
     .populate({
       path: "reviews",
+      match: matchObj,
       populate: {
         path: "author",
       },

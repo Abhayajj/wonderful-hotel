@@ -11,6 +11,8 @@ const reviewSchema = new Schema({
     text: { type: String },
     repliedAt: { type: Date },
   },
+  flagged: { type: Boolean, default: false },
+  flaggedReason: { type: String, default: "" },
 });
 
 module.exports = mongoose.model("Review", reviewSchema);

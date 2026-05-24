@@ -94,4 +94,33 @@ router.post(
   })
 );
 
+// Flag/Report Review Route
+router.post(
+  "/:reviewId/flag",
+  isLoggedIn,
+  wrapAsync(async (req, res) => {
+    const { id, reviewId } = req.params;
+    const { reason } = req.body;
+
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      req.flash("error", "Listing not found!");
+      return res.redirect("/listings");
+    }
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      req.flash("error", "Review not found!");
+      return res.redirect(`/listings/${id}`);
+    }
+
+    review.flagged = true;
+    review.flaggedReason = reason ? reason.trim() : "Unspecified reason";
+
+    await review.save();
+    req.flash("success", "Review has been reported to administrators for moderation.");
+    res.redirect(`/listings/${id}`);
+  })
+);
+
 module.exports = router;

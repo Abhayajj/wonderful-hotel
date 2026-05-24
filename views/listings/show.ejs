@@ -208,12 +208,42 @@
                   </div>
                   <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-2 border-light">
                     <span class="text-muted small"><%= new Date(review.createdAt).toLocaleDateString() %></span>
-                    <% if (currUser && review.author && (review.author._id ? review.author._id.equals(currUser._id) : review.author.equals(currUser._id))) { %>
-                      <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
-                        <button class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-trash"></i></button>
-                      </form>
-                    <% } %>
+                    <div class="d-flex gap-2 align-items-center">
+                      <% if (review.flagged && currUser && currUser.role === 'admin') { %>
+                        <span class="badge bg-warning text-dark py-1 px-2" style="font-size: 10px;" title="Flagged: <%= review.flaggedReason %>">
+                          <i class="fa-solid fa-triangle-exclamation me-1"></i>Flagged
+                        </span>
+                      <% } %>
+                      <% if (currUser && review.author && (review.author._id ? review.author._id.equals(currUser._id) : review.author.equals(currUser._id))) { %>
+                        <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" class="m-0">
+                          <button class="btn btn-sm btn-outline-danger border-0 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                      <% } else if (currUser) { %>
+                        <button class="btn btn-sm btn-outline-warning border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#flagForm-<%= review._id %>" title="Report Review">
+                          <i class="fa-regular fa-flag text-secondary"></i>
+                        </button>
+                      <% } %>
+                    </div>
                   </div>
+                  
+                  <!-- Inline Report/Flag Review Form -->
+                  <% if (currUser && (!review.author || !(review.author._id ? review.author._id.equals(currUser._id) : review.author.equals(currUser._id)))) { %>
+                    <div class="collapse mt-2" id="flagForm-<%= review._id %>">
+                      <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>/flag" method="POST" class="needs-validation m-0" novalidate>
+                        <div class="input-group input-group-sm">
+                          <select name="reason" class="form-select rounded-start-pill py-1" style="font-size: 11px;" required>
+                            <option value="" disabled selected>Select report reason...</option>
+                            <option value="Spam or misleading">Spam or misleading</option>
+                            <option value="Harassment or hate speech">Harassment or hate speech</option>
+                            <option value="Inappropriate language/vulgarity">Inappropriate language/vulgarity</option>
+                            <option value="Irrelevant content">Irrelevant content</option>
+                            <option value="Other">Other</option>
+                          </select>
+                          <button class="btn btn-warning rounded-end-pill px-3 py-1" style="font-size: 11px; background-color: #ffc107 !important; border-color: #ffc107 !important;" type="submit">Report</button>
+                        </div>
+                      </form>
+                    </div>
+                  <% } %>
                 </div>
               </div>
             </div>
