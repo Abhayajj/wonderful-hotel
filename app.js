@@ -9,9 +9,13 @@ const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const session = require("express-session");
+const { MongoStore } = require("connect-mongo");
 const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
+const mongoSanitize = require("express-mongo-sanitize");
+const helmet = require("helmet");
+
 const User = require("./models/user");
 const ExpressError = require("./utils/ExpressError");
 
@@ -23,7 +27,7 @@ const adminRoutes = require("./routes/admin.js");
 const chatRoutes = require("./routes/chat.js");
 const dashboardRoutes = require("./routes/dashboard.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wonderful";
+const MONGO_URL = process.env.ATLASDB_URL || process.env.DATABASE_URL || "mongodb://127.0.0.1:27017/wonderful";
 
 main()
   .then(() => {
@@ -45,14 +49,85 @@ app.use(express.json());
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "/public")));
 
+// MongoDB Query Injection Protection
+app.use(mongoSanitize());
+
+// Content Security Policy setup for Production
+const scriptSrcUrls = [
+  "https://cdn.jsdelivr.net",
+  "https://unpkg.com",
+  "https://checkout.razorpay.com",
+  "https://code.jquery.com"
+];
+const styleSrcUrls = [
+  "https://cdn.jsdelivr.net",
+  "https://cdnjs.cloudflare.com",
+  "https://fonts.googleapis.com",
+  "https://unpkg.com"
+];
+const connectSrcUrls = [
+  "https://unpkg.com",
+  "https://*.tile.openstreetmap.org",
+  "https://*.basemaps.cartocdn.com",
+  "https://nominatim.openstreetmap.org",
+  "https://api.razorpay.com",
+  "https://checkout.razorpay.com"
+];
+const fontSrcUrls = [
+  "https://fonts.googleapis.com",
+  "https://fonts.gstatic.com",
+  "https://cdnjs.cloudflare.com"
+];
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", ...connectSrcUrls],
+      scriptSrc: ["'unsafe-inline'", "'self'", ...scriptSrcUrls],
+      styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
+      workerSrc: ["'self'", "blob:"],
+      objectSrc: [],
+      imgSrc: [
+        "'self'",
+        "blob:",
+        "data:",
+        "https://images.unsplash.com",
+        "https://images.pexels.com",
+        "https://res.cloudinary.com",
+        "https://maps.googleapis.com",
+        "https://*.tile.openstreetmap.org",
+        "https://*.basemaps.cartocdn.com",
+        "https://unpkg.com"
+      ],
+      fontSrc: ["'self'", ...fontSrcUrls],
+      frameSrc: ["'self'", "https://checkout.razorpay.com"]
+    }
+  })
+);
+
+const store = MongoStore.create({
+  mongoUrl: MONGO_URL,
+  crypto: {
+    secret: process.env.SESSION_SECRET || "wonderfullsecretcode"
+  },
+  touchAfter: 24 * 3600 // touch update only once in 24 hours unless session changes
+});
+
+store.on("error", (err) => {
+  console.log("ERROR IN MONGO SESSION STORE", err);
+});
+
 const sessionOptions = {
+  store,
   secret: process.env.SESSION_SECRET || "wonderfullsecretcode",
   resave: false,
   saveUninitialized: true,
   cookie: {
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    httpOnly: true
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production"
   }
 };
 

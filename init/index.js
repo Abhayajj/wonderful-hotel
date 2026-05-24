@@ -3,7 +3,10 @@ const initData = require("./data.js");
 const Listing = require("../models/listing.js");
 const User = require("../models/user.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wonderful";
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+const MONGO_URL = process.env.ATLASDB_URL || process.env.DATABASE_URL || "mongodb://127.0.0.1:27017/wonderful";
 
 async function main() {
   await mongoose.connect(MONGO_URL);
