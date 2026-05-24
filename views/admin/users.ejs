@@ -1,0 +1,97 @@
+<% layout("/layouts/boilerplate") %>
+<div class="row mb-4">
+  <div class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <h1 class="fw-bold text-dark d-flex align-items-center gap-2">
+        <i class="fa-solid fa-user-gear text-danger"></i> Manage Users
+      </h1>
+      <p class="text-secondary mb-0">Toggle roles, view email addresses, and delete accounts.</p>
+    </div>
+    <div class="btn-group shadow-sm">
+      <a href="/admin/dashboard" class="btn btn-outline-danger">Dashboard</a>
+      <a href="/admin/users" class="btn btn-danger active">Users</a>
+      <a href="/admin/listings" class="btn btn-outline-danger">Listings</a>
+      <a href="/admin/bookings" class="btn btn-outline-danger">Bookings</a>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+  <div class="card-header bg-white border-bottom py-3 px-4">
+    <h5 class="fw-bold text-dark mb-0">
+      <i class="fa-solid fa-users me-1 text-danger"></i> All Registered Users
+    </h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="px-4 py-3 border-0">User Info</th>
+            <th class="py-3 border-0">Email</th>
+            <th class="py-3 border-0 text-center">Role</th>
+            <th class="py-3 border-0">Joined Date</th>
+            <th class="px-4 py-3 border-0 text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let user of allUsers) { %>
+            <tr>
+              <td class="px-4 py-3">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="avatar-sm bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 13px;">
+                    <%= user.username.slice(0,2).toUpperCase() %>
+                  </div>
+                  <div>
+                    <span class="fw-semibold text-dark"><%= user.username %></span>
+                    <% if (user._id.equals(currUser._id)) { %>
+                      <span class="badge bg-secondary-subtle text-secondary ms-1 fw-semibold small">You</span>
+                    <% } %>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3 text-secondary">
+                <%= user.email %>
+              </td>
+              <td class="py-3 text-center">
+                <% if (user.role === 'admin') { %>
+                  <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold">Admin</span>
+                <% } else { %>
+                  <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill fw-bold">User</span>
+                <% } %>
+              </td>
+              <td class="py-3 text-secondary">
+                <%= user.createdAt ? user.createdAt.toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A' %>
+              </td>
+              <td class="px-4 py-3 text-end">
+                <div class="d-flex justify-content-end align-items-center gap-2">
+                  <% if (!user._id.equals(currUser._id)) { %>
+                    <form action="/admin/users/<%= user._id %>/toggle-admin?_method=PUT" method="POST" class="d-inline">
+                      <% if (user.role === 'admin') { %>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary px-3 rounded-pill fw-semibold">
+                          Remove Admin
+                        </button>
+                      <% } else { %>
+                        <button type="submit" class="btn btn-sm btn-outline-danger px-3 rounded-pill fw-semibold">
+                          Make Admin
+                        </button>
+                      <% } %>
+                    </form>
+                    
+                    <form action="/admin/users/<%= user._id %>?_method=DELETE" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user? This will delete all of their listings, reviews, and bookings permanently!');">
+                      <button type="submit" class="btn btn-sm btn-danger px-3 rounded-pill fw-semibold">
+                        Delete
+                      </button>
+                    </form>
+                  <% } else { %>
+                    <span class="text-muted small italic">No Actions</span>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

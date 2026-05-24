@@ -1,74 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Top Rated</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color:  lightgoldenrodyellow;;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background-color: yellowgreen;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px cadetblue;
-      max-width: 600px;
-      width: 100%;
-    }
-    .item {
-      margin-bottom: 20px;
-      padding: 10px;
-      border: 1px solid c;
-      border-radius: 4px;
-      background-color: cornflowerblue;
-    }
-    .title {
-      font-size: 1.2em;
-      font-weight: bold;
-    }
-    .description {
-      margin-top: 5px;
-    }
-    .rating {
-      margin-top: 10px;
-      font-size: 1em;
-      color: #f39c12;
-    }
-    h2 {
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Top Rated</h2>
-    <div class="item">
-      <div class="title">Venic</div>
-      <div class="description"> Escape to this charming beachfront cottage for a relaxing getaway. Enjoy stunning ocean views and easy access to the beach. </div>
-      <div class="rating">Rating: ★★★★★</div>
+<% layout("/layouts/boilerplate") %>
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold text-dark"><i class="fa-solid fa-award text-warning me-2"></i>Top Rated Destinations</h2>
+      <p class="text-muted">Explore places that guests highly praise and rate exceptionally.</p>
     </div>
-    <div class="item">
-      <div class="title">Cozy Beachfront Cottage</div>
-      <div class="description"> Escape to this charming beachfront cottage for a relaxing getaway. Enjoy stunning ocean views and easy access to the beach. </div>
-      <div class="rating">Rating: ★★★★☆</div>
-    </div>
-    <div class="item">
-      <div class="title">Modern Loft in Downtown</div>
-      <div class="description">Stay in the heart of the city in this stylish loft apartment. Perfect for urban explorers!</div>
-      <div class="rating">Rating: ★★★★★</div>
-    </div>
-    <div class="item">
-      <div class="title">Mountain Retreat</div>
-      <div class="description">Unplug and unwind in this peaceful mountain cabin. Surrounded by nature, it's a perfect place to recharge.</div>
-      <div class="rating">Rating: ★★★★☆</div>
+    
+    <div class="row row-cols-md-2 row-cols-1 g-4">
+      <% for (let listing of listings) { %>
+        <div class="col">
+          <a href="/listings/<%= listing._id %>" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden card-hover">
+              <img src="<%= listing.image %>" class="card-img-top" alt="<%= listing.title %>" style="height: 250px; object-fit: cover;">
+              <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h5 class="fw-bold text-dark mb-0"><%= listing.title %></h5>
+                  <div class="text-warning">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                  </div>
+                </div>
+                <p class="text-secondary text-truncate mb-3"><%= listing.description %></p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fs-5 fw-bold text-dark">&#8377; <%= listing.price.toLocaleString("en-IN") %> <span class="fs-6 fw-normal text-muted">/ night</span></span>
+                  <span class="badge bg-secondary rounded-pill px-3 py-2"><%= listing.location %></span>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+      <% } %>
     </div>
   </div>
-</body>
-</html>
+</div>

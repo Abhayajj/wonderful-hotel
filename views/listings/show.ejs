@@ -1,56 +1,409 @@
-<% layout("/layouts/boilerplate")%>
-<div class="row">
-  <div class="col-8 offset-3">
-    <h3><%= listing.title %></h3>
-</div>
-    <div class="card col-6 offset-3 show-card">
-  <img src="<%=listing.image%>" class="card-img-top show-img" alt="listing_image">
-  <div class="card-body">
-    <p class="card-text">
-      <b></b><br>
-      <%= listing.description %> <br>
-      &#8377; <%= listing.price.toLocaleString("en-IN") %> <br>
-      <%= listing.location %> <br>
-      <%= listing.country %> <br>
+<% layout("/layouts/boilerplate") %>
+<!-- Leaflet Map CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<div class="row mt-4">
+  <!-- Left Side: Listing Details & Reviews -->
+  <div class="col-lg-7 col-md-8">
+    <h2 class="fw-bold text-dark mb-1"><%= listing.title %></h2>
+    <p class="text-secondary mb-3">
+      <i class="fa-solid fa-location-dot me-1"></i><%= listing.location %>, <%= listing.country %>
+      <% if (listing.owner) { %>
+        &bull; <span class="ms-1 text-muted">Hosted by <strong>@<%= listing.owner.username %></strong></span>
+        <% if (currUser && !currUser._id.equals(listing.owner._id ? listing.owner._id : listing.owner)) { %>
+          <a href="/chats/<%= listing._id %>/<%= listing.owner._id ? listing.owner._id : listing.owner %>" class="btn btn-xs btn-outline-danger py-0.5 px-2 rounded-pill ms-2 fw-semibold" style="font-size: 11px; vertical-align: middle;">
+            <i class="fa-regular fa-comment-dots me-1"></i>Message Host
+          </a>
+        <% } %>
+      <% } %>
     </p>
+    
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+      <% if (listing.images && listing.images.length > 0) { %>
+        <div id="listingCarousel" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-indicators">
+            <% listing.images.forEach((img, idx) => { %>
+              <button type="button" data-bs-target="#listingCarousel" data-bs-slide-to="<%= idx %>" class="<%= idx === 0 ? 'active' : '' %>" aria-current="<%= idx === 0 ? 'true' : 'false' %>"></button>
+            <% }) %>
+          </div>
+          <div class="carousel-inner">
+            <% listing.images.forEach((img, idx) => { %>
+              <div class="carousel-item <%= idx === 0 ? 'active' : '' %>">
+                <img src="<%= img.url %>" class="d-block w-100 show-img" alt="listing_image" style="height: 42vh; object-fit: cover;">
+              </div>
+            <% }) %>
+          </div>
+          <% if (listing.images.length > 1) { %>
+            <button class="carousel-control-prev" type="button" data-bs-target="#listingCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#listingCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          <% } %>
+        </div>
+      <% } else { %>
+        <img src="<%= listing.image || '/images/default.jpg' %>" class="card-img-top show-img" alt="listing_image" style="height: 42vh; object-fit: cover;">
+      <% } %>
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-3 text-dark">About this space</h5>
+        <p class="card-text text-secondary fs-6 mb-0" style="line-height: 1.6;">
+          <%= listing.description %>
+        </p>
+      </div>
+    </div>
+
+    <!-- Edit/Delete Action Buttons (Only visible to the Owner) -->
+    <% if (currUser && listing.owner && (listing.owner._id ? listing.owner._id.equals(currUser._id) : listing.owner.equals(currUser._id))) { %>
+      <div class="d-flex gap-3 mb-5">
+        <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark px-4 py-2 rounded-pill">
+          <i class="fa-solid fa-pen-to-square me-2"></i>Edit Details
+        </a>
+        <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="d-inline">
+          <button class="btn btn-outline-danger px-4 py-2 rounded-pill">
+            <i class="fa-solid fa-trash-can me-2"></i>Delete Listing
+          </button>
+        </form>
+      </div>
+    <% } %>
+
+    <hr class="my-5">
+
+    <!-- Leave a Review Form -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-white">
+      <h4 class="fw-bold mb-3"><i class="fa-solid fa-star text-warning me-2"></i>Leave a Review</h4>
+      <% if (currUser) { %>
+        <form action="/listings/<%= listing._id %>/reviews" method="POST" novalidate class="needs-validation">
+          <div class="mb-3">
+            <label for="rating" class="form-label fw-semibold text-muted">Rating</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range flex-grow-1" style="max-width: 300px;">
+              <span class="fw-bold text-dark bg-light px-3 py-1 rounded-pill" id="rating-val">3</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="comment" class="form-label fw-semibold text-muted">Comments</label>
+            <textarea name="review[comment]" id="comment" cols="30" rows="4" class="form-control rounded-3" placeholder="Share your experience..." required></textarea>
+            <div class="invalid-feedback">Please enter a comment.</div>
+          </div>
+          <button class="btn btn-danger px-4 py-2 rounded-pill fw-bold">Submit Review</button>
+        </form>
+      <% } else { %>
+        <div class="text-center py-4 bg-light rounded-4">
+          <p class="text-muted mb-3">You must be logged in to share a review.</p>
+          <a href="/login" class="btn btn-outline-danger px-4 py-2 rounded-pill fw-bold btn-sm">Log In</a>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Show Existing Reviews -->
+    <div class="mb-5">
+      <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <h4 class="fw-bold mb-0">Guest Reviews (<%= listing.reviews.length %>)</h4>
+      </div>
+
+      <% if (listing.reviews.length === 0) { %>
+        <p class="text-muted">No reviews yet. Be the first to leave one!</p>
+      <% } else { %>
+        <% 
+          let starCounts = [0, 0, 0, 0, 0, 0]; // index 1 to 5
+          let totalRatingSum = 0;
+          listing.reviews.forEach(r => {
+            totalRatingSum += r.rating;
+            if (r.rating >= 1 && r.rating <= 5) {
+              starCounts[r.rating]++;
+            }
+          });
+          const avgRating = (totalRatingSum / listing.reviews.length).toFixed(1);
+          const totalReviewsCount = listing.reviews.length;
+        %>
+        
+        <!-- Premium Rating Breakdown Dashboard -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+          <div class="row align-items-center g-4">
+            <!-- Left Side: Average Score Card -->
+            <div class="col-md-4 text-center border-end-md">
+              <h1 class="display-3 fw-bold text-dark mb-0"><%= avgRating %></h1>
+              <div class="text-warning my-2">
+                <% const fullStars = Math.floor(avgRating);
+                   const hasHalfStar = (avgRating - fullStars) >= 0.3 && (avgRating - fullStars) <= 0.8;
+                   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                %>
+                <% for(let i = 1; i <= fullStars; i++) { %>
+                  <i class="fa-solid fa-star fs-4"></i>
+                <% } %>
+                <% if(hasHalfStar) { %>
+                  <i class="fa-solid fa-star-half-stroke fs-4"></i>
+                <% } %>
+                <% for(let i = 1; i <= emptyStars; i++) { %>
+                  <i class="fa-regular fa-star fs-4"></i>
+                <% } %>
+              </div>
+              <p class="text-muted small mb-0">Average rating based on <%= totalReviewsCount %> reviews</p>
+            </div>
+            
+            <!-- Right Side: Star Breakdown Progress Bars -->
+            <div class="col-md-8">
+              <% for(let star = 5; star >= 1; star--) { 
+                const count = starCounts[star];
+                const percentage = totalReviewsCount > 0 ? Math.round((count / totalReviewsCount) * 100) : 0;
+              %>
+                <div class="d-flex align-items-center mb-2 gap-2">
+                  <span class="text-secondary small fw-bold" style="width: 50px;"><%= star %> Star</span>
+                  <div class="progress flex-grow-1 bg-light rounded-pill" style="height: 8px;">
+                    <div class="progress-bar bg-danger rounded-pill" role="progressbar" style="width: <%= percentage %>%" aria-valuenow="<%= percentage %>" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <span class="text-secondary small fw-bold text-end" style="width: 45px;"><%= percentage %>%</span>
+                  <span class="text-muted small" style="width: 25px;">(<%= count %>)</span>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <% for(let review of listing.reviews) { %>
+            <div class="col-md-6">
+              <div class="card h-100 border-0 shadow-sm rounded-4 p-3 bg-light-subtle border border-light">
+                <div class="card-body d-flex flex-column justify-content-between p-2">
+                  <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h6 class="fw-bold mb-0 text-dark">
+                        @<%= review.author ? review.author.username : 'guest' %>
+                      </h6>
+                      <div class="text-warning small">
+                        <% for(let i = 1; i <= 5; i++) { %>
+                          <i class="<%= i <= review.rating ? 'fa-solid fa-star' : 'fa-regular fa-star' %>"></i>
+                        <% } %>
+                      </div>
+                    </div>
+                    <p class="card-text text-secondary mb-3 small" style="line-height: 1.5;"><%= review.comment %></p>
+                    
+                    <% if (review.reply && review.reply.text) { %>
+                      <div class="mt-2 p-2 bg-light rounded-3 border-start border-3 border-danger small">
+                        <div class="d-flex align-items-center gap-1 mb-1">
+                          <i class="fa-solid fa-reply text-danger fa-rotate-180"></i>
+                          <span class="fw-bold text-dark text-xs">Host Response:</span>
+                        </div>
+                        <p class="text-secondary mb-0"><%= review.reply.text %></p>
+                      </div>
+                    <% } else if (currUser && listing.owner && (listing.owner._id ? listing.owner._id.equals(currUser._id) : listing.owner.equals(currUser._id))) { %>
+                      <div class="mt-2">
+                        <button class="btn btn-xs btn-outline-danger py-1 px-2 rounded-pill fw-semibold" style="font-size: 11px;" type="button" data-bs-toggle="collapse" data-bs-target="#replyForm-<%= review._id %>">
+                          <i class="fa-solid fa-comment-dots me-1"></i> Reply as Host
+                        </button>
+                        <div class="collapse mt-2" id="replyForm-<%= review._id %>">
+                          <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>/reply" method="POST" class="needs-validation" novalidate>
+                            <div class="input-group input-group-sm">
+                              <input type="text" name="replyText" class="form-control rounded-start-pill" placeholder="Write your response..." required>
+                              <button class="btn btn-danger rounded-end-pill px-3" type="submit">Submit</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    <% } %>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-2 border-light">
+                    <span class="text-muted small"><%= new Date(review.createdAt).toLocaleDateString() %></span>
+                    <% if (currUser && review.author && (review.author._id ? review.author._id.equals(currUser._id) : review.author.equals(currUser._id))) { %>
+                      <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
+                        <button class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-trash"></i></button>
+                      </form>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+    
+    <hr class="my-5">
+
+    <!-- Map Section -->
+    <div class="mb-5">
+      <h4 class="fw-bold mb-3"><i class="fa-solid fa-map-location-dot text-danger me-2"></i>Where you'll be</h4>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <!-- Right Side: Booking Card Widget -->
+  <div class="col-lg-5 col-md-4">
+    <div class="card border-0 shadow-lg rounded-4 p-4 mb-5 bg-white sticky-top" style="top: 100px; z-index: 10;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <span class="fs-4 fw-bold text-dark">&#8377; <%= listing.price.toLocaleString("en-IN") %></span>
+          <span class="text-muted small">/ night</span>
+        </div>
+        <div class="text-warning small">
+          <i class="fa-solid fa-star"></i>
+          <span class="text-dark fw-bold ms-1">
+            <%= listing.reviews.length > 0 ? (listing.reviews.reduce((acc, r) => acc + r.rating, 0) / listing.reviews.length).toFixed(1) : "New" %>
+          </span>
+        </div>
+      </div>
+
+      <% if (currUser && listing.owner && (listing.owner._id ? listing.owner._id.equals(currUser._id) : listing.owner.equals(currUser._id))) { %>
+        <div class="alert alert-warning border-0 rounded-4 text-center p-3 mb-0">
+          <i class="fa-solid fa-circle-info fs-4 d-block mb-2"></i>
+          <span>You are hosting this listing. Bookings are only open to guests.</span>
+        </div>
+      <% } else { %>
+        <form action="/listings/<%= listing._id %>/book" method="POST" class="needs-validation" novalidate>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="checkIn" class="form-label small fw-bold text-secondary uppercase">Check-In</label>
+              <input type="date" id="checkIn" name="booking[checkIn]" class="form-control rounded-3" required>
+            </div>
+            <div class="col-6">
+              <label for="checkOut" class="form-label small fw-bold text-secondary uppercase">Check-Out</label>
+              <input type="date" id="checkOut" name="booking[checkOut]" class="form-control rounded-3" required>
+            </div>
+          </div>
+
+          <!-- Dynamic Pricing Area (Shown via JavaScript) -->
+          <div id="pricing-details" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-2 small text-secondary">
+              <span id="night-calc">&#8377; <%= listing.price.toLocaleString("en-IN") %> x 0 nights</span>
+              <span id="base-total">&#8377; 0</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2 small text-secondary">
+              <span>Service Fee</span>
+              <span>&#8377; 0</span>
+            </div>
+            <hr class="my-2">
+            <div class="d-flex justify-content-between align-items-center mb-4 text-dark fw-bold">
+              <span>Total Price</span>
+              <span id="final-total">&#8377; 0</span>
+            </div>
+          </div>
+
+          <!-- Conflict Alert -->
+          <div id="booking-conflict-alert" class="alert alert-danger border-0 rounded-3 small p-2 mt-2 d-none">
+            <i class="fa-solid fa-circle-exclamation me-1"></i> These dates overlap with an existing booking!
+          </div>
+
+          <button class="btn btn-danger w-100 py-3 rounded-pill fw-bold shadow-sm" id="book-btn">
+            <i class="fa-solid fa-indian-rupee-sign me-2"></i>Reserve &amp; Book Stay
+          </button>
+        </form>
+
+        <!-- Booked Dates List -->
+        <% if (typeof bookings !== "undefined" && bookings && bookings.length > 0) { %>
+          <div class="mt-4 pt-3 border-top">
+            <span class="d-block text-secondary small fw-bold text-uppercase mb-2"><i class="fa-solid fa-calendar-xmark text-danger me-1"></i>Already Booked Dates:</span>
+            <div class="d-flex flex-wrap gap-2" style="max-height: 100px; overflow-y: auto;">
+              <% for (let b of bookings) { %>
+                <span class="badge bg-light text-secondary border rounded-pill px-2 py-1.5 small" style="font-size: 10px; margin-bottom: 2px;">
+                  <%= new Date(b.checkIn).toLocaleDateString("en-IN", { month: 'short', day: 'numeric' }) %> - <%= new Date(b.checkOut).toLocaleDateString("en-IN", { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                </span>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+    
+    <!-- Sponsored Sidebar Ad -->
+    <%- include("../includes/ad-banner.ejs", { sidebar: true, listingId: listing._id }) %>
   </div>
 </div>
-    
-    <br />
-    <div class="btns">
-      <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark col-1 offset-3 edit-btn">Edit</a>
-   
-      <form method="POST" action="/listings/<%=listing._id%>?_method=DELETE">
-        <button class="btn btn-dark offset-5">Delete</button>
-      </form>
-  </div>
-  <div class="col-8 offset-3 mb-3" >
-    <hr>
-    <h4>Leave a Review</h4>
-  <form action="/listing/<%= listing.id %>/reviews" method="POST">
-    <div class="mb-3 mt-3">
-      <label for="rating" class="form-label">Rating</label>
-      <input type="range"
-       min="1"
-        max="5" 
-        id="rating"
-         name="review[rating]" 
-         class="form-range">
-    </div>
-    <div class="mb-3 mt-3">
-      <label for="comment" class="form-label" >Comments</label>
-      <textarea name="review[comment]" 
-      id="comment" cols="30" rows="5" class="form-control"  required></textarea>
-    </div>
-<button class="btn btn-outline-dark">Submit</button>
-  </form>
-  <hr>
-  <h4>All Review</h4>
-  <ul>
-    <% for(review of listing.reviews) { %>
-    <li>  <%= review.comment %> , <%= review.rating %> </li>
-  <% } %>
-</ul>
-</div>
-</div>
-    
+
+<script>
+  // Simple listener to update rating value dynamically
+  const range = document.getElementById('rating');
+  const val = document.getElementById('rating-val');
+  if (range && val) {
+    range.addEventListener('input', (e) => {
+      val.textContent = e.target.value;
+    });
+  }
+
+  // Dynamic booking price calculator & conflict validator
+  const checkInInput = document.getElementById("checkIn");
+  const checkOutInput = document.getElementById("checkOut");
+  const pricingDiv = document.getElementById("pricing-details");
+  const nightCalc = document.getElementById("night-calc");
+  const baseTotal = document.getElementById("base-total");
+  const finalTotal = document.getElementById("final-total");
+  const bookBtn = document.getElementById("book-btn");
+  const conflictAlert = document.getElementById("booking-conflict-alert");
+
+  const pricePerNight = <%= listing.price %>;
+  const bookedDates = <%- typeof bookings !== "undefined" ? JSON.stringify(bookings) : "[]" %>;
+
+  // Set minimum dates
+  const today = new Date().toISOString().split("T")[0];
+  if (checkInInput) {
+    checkInInput.min = today;
+    checkInInput.addEventListener("change", () => {
+      checkOutInput.min = checkInInput.value;
+      validateDatesAndCalculate();
+    });
+  }
+  if (checkOutInput) {
+    checkOutInput.addEventListener("change", validateDatesAndCalculate);
+  }
+
+  function checkOverlap(inStr, outStr) {
+    const start = new Date(inStr);
+    const end = new Date(outStr);
+    for (let booking of bookedDates) {
+      const bStart = new Date(booking.checkIn);
+      const bEnd = new Date(booking.checkOut);
+      if (start < bEnd && end > bStart) {
+        return true; // Overlap!
+      }
+    }
+    return false;
+  }
+
+  function validateDatesAndCalculate() {
+    if (!checkInInput.value || !checkOutInput.value) {
+      pricingDiv.classList.add("d-none");
+      return;
+    }
+
+    const checkInDate = new Date(checkInInput.value);
+    const checkOutDate = new Date(checkOutInput.value);
+
+    if (checkOutDate <= checkInDate) {
+      pricingDiv.classList.add("d-none");
+      return;
+    }
+
+    const hasOverlap = checkOverlap(checkInInput.value, checkOutInput.value);
+
+    if (hasOverlap) {
+      conflictAlert.classList.remove("d-none");
+      bookBtn.disabled = true;
+      pricingDiv.classList.add("d-none");
+    } else {
+      conflictAlert.classList.add("d-none");
+      bookBtn.disabled = false;
+
+      const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+      const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      const total = nights * pricePerNight;
+
+      nightCalc.textContent = `₹ ${pricePerNight.toLocaleString("en-IN")} x ${nights} night${nights > 1 ? 's' : ''}`;
+      baseTotal.textContent = `₹ ${total.toLocaleString("en-IN")}`;
+      finalTotal.textContent = `₹ ${total.toLocaleString("en-IN")}`;
+
+      pricingDiv.classList.remove("d-none");
+    }
+  }
+</script>
+
+<!-- Inject Mapbox Map Variables -->
+<script>
+  const mapToken = "<%= process.env.MAPBOX_TOKEN || '' %>";
+  const coordinates = <%- JSON.stringify(listing.geometry.coordinates) %>;
+  const listingTitle = "<%= listing.title %>";
+  const listingLocation = "<%= listing.location %>, <%= listing.country %>";
+</script>
+<script src="/js/map.js"></script>

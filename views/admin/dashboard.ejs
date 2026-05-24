@@ -1,0 +1,179 @@
+<% layout("/layouts/boilerplate") %>
+<div class="row mb-4">
+  <div class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <h1 class="fw-bold text-dark d-flex align-items-center gap-2">
+        <i class="fa-solid fa-shield-halved text-danger"></i> Admin Dashboard
+      </h1>
+      <p class="text-secondary mb-0">Overview of platform metrics, bookings, and activities.</p>
+    </div>
+    <div class="btn-group shadow-sm">
+      <a href="/admin/dashboard" class="btn btn-danger active">Dashboard</a>
+      <a href="/admin/users" class="btn btn-outline-danger">Users</a>
+      <a href="/admin/listings" class="btn btn-outline-danger">Listings</a>
+      <a href="/admin/bookings" class="btn btn-outline-danger">Bookings</a>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-4 mb-5">
+  <div class="col-md-6 col-lg-4">
+    <div class="card border-0 shadow-sm rounded-4 bg-danger-subtle text-danger-emphasis h-100">
+      <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="fs-6 fw-semibold text-uppercase tracking-wider opacity-75">Total Revenue</span>
+          <h2 class="fw-extrabold mt-2 mb-0">
+            <%= totalRevenue.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }) %>
+          </h2>
+        </div>
+        <div class="fs-1 opacity-50">
+          <i class="fa-solid fa-indian-rupee-sign"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6 col-lg-4">
+    <div class="card border-0 shadow-sm rounded-4 bg-info-subtle text-info-emphasis h-100">
+      <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="fs-6 fw-semibold text-uppercase tracking-wider opacity-75">Total Refunded</span>
+          <h2 class="fw-extrabold mt-2 mb-0">
+            <%= totalRefunded.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }) %>
+          </h2>
+        </div>
+        <div class="fs-1 opacity-50">
+          <i class="fa-solid fa-hand-holding-dollar"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card border-0 shadow-sm rounded-4 bg-primary-subtle text-primary-emphasis h-100">
+      <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="fs-6 fw-semibold text-uppercase tracking-wider opacity-75">Active Users</span>
+          <h2 class="fw-extrabold mt-2 mb-0"><%= totalUsers.toLocaleString() %></h2>
+        </div>
+        <div class="fs-1 opacity-50">
+          <i class="fa-solid fa-users"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card border-0 shadow-sm rounded-4 bg-success-subtle text-success-emphasis h-100">
+      <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="fs-6 fw-semibold text-uppercase tracking-wider opacity-75">Listings</span>
+          <h2 class="fw-extrabold mt-2 mb-0"><%= totalListings.toLocaleString() %></h2>
+        </div>
+        <div class="fs-1 opacity-50">
+          <i class="fa-solid fa-house-chimney"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card border-0 shadow-sm rounded-4 bg-warning-subtle text-warning-emphasis h-100">
+      <div class="card-body p-4 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="fs-6 fw-semibold text-uppercase tracking-wider opacity-75">Total Bookings</span>
+          <h2 class="fw-extrabold mt-2 mb-0"><%= totalBookings.toLocaleString() %></h2>
+        </div>
+        <div class="fs-1 opacity-50">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Bookings Table -->
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+  <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+    <h5 class="fw-bold text-dark mb-0">
+      <i class="fa-solid fa-clock-history me-1 text-danger"></i> Recent Bookings (Last 10)
+    </h5>
+    <a href="/admin/bookings" class="btn btn-link text-danger fw-bold p-0 text-decoration-none">View All Bookings <i class="fa-solid fa-arrow-right fs-7 ms-1"></i></a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="px-4 py-3 border-0">Guest</th>
+            <th class="py-3 border-0">Listing</th>
+            <th class="py-3 border-0">Check-In</th>
+            <th class="py-3 border-0">Check-Out</th>
+            <th class="py-3 border-0 text-end">Amount</th>
+            <th class="py-3 border-0 text-center">Status</th>
+            <th class="px-4 py-3 border-0 text-end">Booking Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (recentBookings.length === 0) { %>
+            <tr>
+              <td colspan="7" class="text-center py-5 text-secondary">
+                <i class="fa-regular fa-folder-open fs-2 mb-3 d-block text-secondary opacity-50"></i>
+                No bookings have been made yet.
+              </td>
+            </tr>
+          <% } else { %>
+            <% for (let booking of recentBookings) { %>
+              <tr>
+                <td class="px-4 py-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-sm bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 13px;">
+                      <%= booking.user ? booking.user.username.slice(0,2).toUpperCase() : '?' %>
+                    </div>
+                    <div>
+                      <span class="fw-semibold text-dark d-block"><%= booking.user ? booking.user.username : 'Unknown User' %></span>
+                      <small class="text-muted"><%= booking.user ? booking.user.email : 'N/A' %></small>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <% if (booking.listing) { %>
+                    <a href="/listings/<%= booking.listing._id %>" class="fw-semibold text-dark text-decoration-none hover-danger">
+                      <%= booking.listing.title %>
+                    </a>
+                  <% } else { %>
+                    <span class="text-muted italic">Deleted Listing</span>
+                  <% } %>
+                </td>
+                <td class="py-3 text-secondary">
+                  <%= booking.checkIn.toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                </td>
+                <td class="py-3 text-secondary">
+                  <%= booking.checkOut.toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                </td>
+                <td class="py-3 text-end fw-bold text-dark">
+                  <%= booking.totalPrice.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }) %>
+                </td>
+                <td class="py-3 text-center">
+                  <% if (booking.status === 'paid') { %>
+                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold">Paid</span>
+                  <% } else if (booking.status === 'cancelled') { %>
+                    <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fw-bold">Cancelled</span>
+                  <% } else if (booking.status === 'refunded') { %>
+                    <span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill fw-bold">Refunded</span>
+                  <% } else { %>
+                    <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill fw-bold"><%= booking.status %></span>
+                  <% } %>
+                </td>
+                <td class="px-4 py-3 text-end text-muted small">
+                  <%= booking.createdAt.toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                </td>
+              </tr>
+            <% } %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

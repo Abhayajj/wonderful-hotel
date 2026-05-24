@@ -1,74 +1,112 @@
 <% layout("/layouts/boilerplate") %>
-<div class="row mt-3">
-  <div class="col-8 offset-2">
-    <h3>Edit Your Listing</h3>
-    <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" novalidate class="needs-validation">
-      <div class="mb-3">
-        <label for="title" class="form-label">Title</label>
-        <input 
-          name="listing[title]" 
-          value="<%= listing.title %>" 
-          type="text" 
-          class="form-control" 
-          required 
-          />
-          <div class="valid-feedback">Enter a valid title</div>
-      </div>
-      <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea 
-          name="listing[description]" 
-          class="form-control" required 
-        ><%= listing.description %>  </textarea>
-      </div>
-      <div class="invalid-feedback">Enter a valid description</div>
-      <div class="mb-3">
-        <label for="image" class="form-label">Image LINK</label>
-        <input 
-          name="listing[image]" 
-          value="<%= listing.image %>" 
-          type="text" 
-          class="form-control" 
-          required 
-        />
-        <div class="invalid-feedback">Enter a valid image</div>
-      </div>
-      <div class="row">
-        <div class="mb-3 col-md-4">
-          <label for="price" class="form-label">Price</label>
-          <input 
-            name="listing[price]" 
-            value="<%= listing.price %>" 
-            type="number"  
-            class="form-control" 
-            required 
-          />
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-10">
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+      <h3 class="fw-bold text-dark mb-4"><i class="fa-solid fa-pen-to-square text-danger me-2"></i>Edit Your Listing</h3>
+      <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" enctype="multipart/form-data" novalidate class="needs-validation">
+        
+        <div class="mb-3">
+          <label for="title" class="form-label fw-semibold text-secondary">Title</label>
+          <input name="listing[title]" value="<%= listing.title %>" type="text" class="form-control rounded-3" required />
+          <div class="valid-feedback">Title looks Good!</div>
+          <div class="invalid-feedback">Please enter a valid title.</div>
         </div>
-        <div class="mb-3 col-md-8">
-          <label for="country" class="form-label">Country</label>
-          <input 
-            name="listing[country]" 
-            value="<%= listing.country %>" 
-            type="text"  
-            class="form-control" 
-            required 
-            />
-            <div class="invalid-feedback">Enter a valid country</div>
+        
+        <div class="mb-3">
+          <label for="description" class="form-label fw-semibold text-secondary">Description</label>
+          <textarea name="listing[description]" class="form-control rounded-3" rows="4" required><%= listing.description %></textarea>
+          <div class="invalid-feedback">Please enter a valid description.</div>
         </div>
-      </div>
-      <div class="mb-3">
-        <label for="location" class="form-label">Location</label>
-        <input 
-          name="listing[location]" 
-          value="<%= listing.location %>" 
-          type="text" 
-          class="form-control" 
-          required 
-          />
-          <div class="invalid-feedback">Enter a valid location</div>
-      </div>
-      <button class="btn btn-dark edit-btn mt-3">Edit</button>
-    </form>
+
+        <div class="row">
+          <div class="mb-3 col-md-6">
+            <label for="category" class="form-label fw-semibold text-secondary">Category</label>
+            <select name="listing[category]" class="form-select rounded-3" required>
+              <% const categories = ["Other", "Beach", "Mountain", "City", "Countryside", "Luxury", "Budget", "Treehouse", "Historic"]; %>
+              <% for (let cat of categories) { %>
+                <option value="<%= cat %>" <%= listing.category === cat ? 'selected' : '' %>><%= cat %></option>
+              <% } %>
+            </select>
+          </div>
+          <div class="mb-3 col-md-6">
+            <label for="image" class="form-label fw-semibold text-secondary">Cover Image Link (URL)</label>
+            <input name="listing[image]" value="<%= listing.image %>" type="text" class="form-control rounded-3" />
+            <div class="invalid-feedback">Please enter a valid image URL.</div>
+          </div>
+        </div>
+
+        <!-- Existing images to delete -->
+        <% if (listing.images && listing.images.length > 0) { %>
+          <div class="mb-4">
+            <label class="form-label fw-semibold text-secondary d-block">Manage Current Gallery Images</label>
+            <div class="row g-2">
+              <% for(let img of listing.images) { %>
+                <div class="col-6 col-sm-4 col-md-3">
+                  <div class="card h-100 border rounded-3 position-relative overflow-hidden shadow-xs">
+                    <img src="<%= img.url %>" class="card-img-top img-fluid" style="height: 100px; object-fit: cover;">
+                    <div class="card-body p-2 bg-light d-flex align-items-center justify-content-between">
+                      <div class="form-check m-0">
+                        <input class="form-check-input" type="checkbox" name="deleteImages[]" value="<%= img.filename %>" id="del-<%= img.filename %>">
+                        <label class="form-check-label text-danger fw-bold small cursor-pointer" for="del-<%= img.filename %>">
+                          Delete
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+            <small class="text-muted mt-2 d-block">Check the images you want to permanently remove from this property.</small>
+          </div>
+        <% } %>
+
+        <div class="mb-4">
+          <label for="images" class="form-label fw-semibold text-secondary">Upload Additional Images</label>
+          <input name="listing[images]" type="file" class="form-control rounded-3" multiple />
+          <small class="text-muted">You can upload more images to add to the property gallery.</small>
+        </div>
+
+        <div class="row">
+          <div class="mb-3 col-sm-4">
+            <label for="price" class="form-label fw-semibold text-secondary">Price per Night</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 rounded-start-3">&#8377;</span>
+              <input name="listing[price]" value="<%= listing.price %>" type="number" class="form-control border-start-0 rounded-end-3" required />
+              <div class="invalid-feedback">Please enter a valid price.</div>
+            </div>
+          </div>
+          <div class="mb-3 col-sm-8">
+            <label for="country" class="form-label fw-semibold text-secondary">Country</label>
+            <input name="listing[country]" value="<%= listing.country %>" type="text" class="form-control rounded-3" required />
+            <div class="invalid-feedback">Please enter a valid country.</div>
+          </div>
+        </div>
+
+        <!-- Amenities Checklist -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-secondary d-block">Amenities Available</label>
+          <div class="row g-2 px-1">
+            <% const availableAmenities = ["Wifi", "AC", "Pool", "Kitchen", "Parking", "TV", "Gym", "Pets Allowed"]; %>
+            <% for (let am of availableAmenities) { %>
+              <% const checked = listing.amenities && listing.amenities.includes(am) ? "checked" : ""; %>
+              <div class="col-6 col-sm-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="listing[amenities][]" value="<%= am %>" id="am-<%= am %>" <%= checked %>>
+                  <label class="form-check-label small text-secondary" for="am-<%= am %>"><%= am %></label>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="location" class="form-label fw-semibold text-secondary">Location / City</label>
+          <input name="listing[location]" value="<%= listing.location %>" type="text" class="form-control rounded-3" required />
+          <div class="invalid-feedback">Please enter a valid location.</div>
+        </div>
+
+        <button class="btn btn-danger w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm edit-btn">Update Property</button>
+      </form>
+    </div>
   </div>
 </div>
-<script src="/js/script.js"></script>

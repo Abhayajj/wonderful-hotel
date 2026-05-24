@@ -6,15 +6,17 @@ const listingSchema = Joi.object({
     price: Joi.number().required().min(0),
     description: Joi.string().required(),
     location: Joi.string().required(),
-    // Add other listing fields here
+    country: Joi.string().required(),
+    image: Joi.string().allow("", null),
+    category: Joi.string().allow("", null),
+    amenities: Joi.array().items(Joi.string()).allow("", null)
   }).required()
 });
 
 const reviewSchema = Joi.object({
   review: Joi.object({
     rating: Joi.number().required().min(1).max(5),
-    text: Joi.string().required(),
-    // Add other review fields here
+    comment: Joi.string().required(),
   }).required()
 });
 

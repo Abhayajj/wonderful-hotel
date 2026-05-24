@@ -1,0 +1,72 @@
+<% layout("/layouts/boilerplate") %>
+<div class="row justify-content-center my-5">
+  <div class="col-md-8 col-lg-6">
+    <div class="card border-0 shadow-lg rounded-4 p-4 p-sm-5 bg-white">
+      <h2 class="fw-bold text-dark mb-4">
+        <i class="fa-solid fa-user-gear text-danger me-2"></i>Edit Profile
+      </h2>
+      <p class="text-secondary small mb-4">Update your profile biography, phone number, and avatar image to display to other guests and hosts.</p>
+      
+      <form action="/profile/edit" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+        
+        <!-- Profile Image File Input -->
+        <div class="mb-4 text-center">
+          <div class="position-relative d-inline-block mb-2">
+            <img src="<%= currUser.profileImage || '/images/default-avatar.png' %>" 
+                 id="avatar-preview" 
+                 class="rounded-circle border border-3 border-danger shadow-xs" 
+                 style="width: 120px; height: 120px; object-fit: cover;" 
+                 alt="Avatar Preview"
+                 onerror="this.src='/images/default-avatar.png';">
+          </div>
+          <div class="mb-3">
+            <label for="profileImage" class="form-label fw-semibold text-secondary small">Upload New Profile Picture</label>
+            <input class="form-control form-control-sm" type="file" id="profileImage" name="profileImage" accept="image/*">
+          </div>
+        </div>
+
+        <!-- Phone Number Input -->
+        <div class="mb-3">
+          <label for="phone" class="form-label fw-semibold text-secondary">Contact Number</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-phone"></i></span>
+            <input type="tel" name="phone" id="phone" value="<%= currUser.phone || '' %>" class="form-control rounded-end-3 border-start-0" placeholder="e.g. +91 9876543210" pattern="^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$">
+          </div>
+          <div class="invalid-feedback">Please enter a valid phone number.</div>
+        </div>
+
+        <!-- Biography Input -->
+        <div class="mb-4">
+          <label for="bio" class="form-label fw-semibold text-secondary">Biography</label>
+          <textarea name="bio" id="bio" rows="4" class="form-control rounded-3" placeholder="Tell us a little bit about yourself, your travels, or your properties..."><%= currUser.bio || '' %></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-3 justify-content-end">
+          <a href="/profile" class="btn btn-outline-secondary rounded-pill px-4 btn-sm">Cancel</a>
+          <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold btn-sm">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Dynamic image preview on selecting file
+  const fileInput = document.getElementById("profileImage");
+  const previewImg = document.getElementById("avatar-preview");
+  if (fileInput && previewImg) {
+    fileInput.addEventListener("change", function() {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImg.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+</script>

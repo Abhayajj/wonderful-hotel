@@ -1,100 +1,406 @@
- 
- #START{
-   font-family: 'plus Jakarta Sans',sans-serif !important;
-   background-color: lightgoldenrodyellow;
-display: flex;
-flex-direction: column;
-min-height: 100vh;
-}
-.container{
-   flex:1;
-}
- .navbar{
-    height: 5rem; /* fixed typo: "rem" instead of " rem" */
- }
- .fa-compass{
-    color: red;
-    font-size: 2rem; /* fixed typo: "rem" instead of " rem" */
- }
- .f-info-links a {
-    text-decoration: none;
-    color:black;
- }
- .f-info-links a:hover{
-    text-decoration: underline;
- }
- .f-info-links,
- .f-info-socials,
- .f-info-brand{
-   width: 200px;
-   display: flex;
-   align-items: center;
-   justify-self: center;
-   color: chocolate;
-}
-.f-info-socials i {
-   font-size: 1.8rem;
-   margin-right: 1rem;
-color: black;
-}
- .f-info{
-   text-align: center;
-    height: 8rem;
-background-color: rgb(255, 227, 192);
-display: flex;
-flex-wrap: wrap;
-justify-content: center;
-align-items:space-evenly;
- } 
- /* cards */
- .cards{
-   border: none !important;
-margin-bottom: 2rem;   
- }
- .card-img-top{
-   border: radius 1rem !important;
-   width: 100%;
-   object-fit: cover !important;
- }
-.card-body{
-   padding: 0 !important;
+/* Custom CSS for WonderFull Application */
 
+:root {
+  --primary-color: #ff385c;
+  --primary-hover: #e61e4d;
+  --bg-color: #f7f7f7;
+  --card-bg: #ffffff;
+  --text-dark: #222222;
+  --text-secondary: #717171;
+  --card-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --nav-bg: #ffffff;
+  --input-bg: #ffffff;
+  --footer-bg: #ffffff;
+  --badge-bg: #f8f9fa;
+  --card-footer-bg: #ffffff;
+  --chat-bubble-self: #ff385c;
+  --chat-bubble-other: #ffffff;
+  --chat-bg: #f8f9fa;
+  --card-hover-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
-.card-text p{
-   font-weight: 400;
+
+[data-theme="dark"], [data-bs-theme="dark"] {
+  --bg-color: #0e0e0e;
+  --card-bg: #181818;
+  --text-dark: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --card-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --nav-bg: #141414;
+  --input-bg: #222222;
+  --footer-bg: #141414;
+  --badge-bg: #222222;
+  --card-footer-bg: #1c1c1c;
+  --chat-bubble-self: #ff385c;
+  --chat-bubble-other: #242424;
+  --chat-bg: #121212;
+  --card-hover-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
 }
-.listing-link{
-   text-decoration: none;
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
 }
-/* card effect */
-.card-img-overlay{
-   opacity: 0;
+
+.main-wrapper {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
-.card-img-overlay:hover{
-   opacity: 0.5;
-   background-color: white;
+
+body#START {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  background-color: var(--bg-color);
+  color: var(--text-dark);
 }
-/* new page */
-.add-btn{
-background-color: red !important;
-border: none !important;
+
+/* Navbar Premium Styling */
+.navbar {
+  transition: var(--transition);
 }
-/* edit page */
-.edit-btn{
-   background-color: red !important;
-border: none !important;
+.navbar-brand span {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.5px;
 }
-/* show page */
-.show-img{
-height: 30vh;
+.nav-link {
+  font-weight: 500;
+  color: var(--text-dark) !important;
+  transition: var(--transition);
+  position: relative;
 }
-.btns{
-   display: flex;
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 50%;
+  background-color: var(--primary-color);
+  transition: var(--transition);
+  transform: translateX(-50%);
 }
-.show-card{
-   padding-left: 0;
-   padding-right: 0;
+.nav-link:hover::after {
+  width: 60%;
 }
-#rating{
-   color: black;
+.btn-danger {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  transition: var(--transition);
+}
+.btn-danger:hover {
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* Card Improvements */
+.card-hover {
+  transition: var(--transition);
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12) !important;
+}
+.card-hover:hover .card-img-overlay {
+  opacity: 1 !important;
+}
+.card-img-top {
+  border-radius: 1rem 1rem 0 0 !important;
+}
+.rounded-4 {
+  border-radius: 1rem !important;
+}
+.rounded-3 {
+  border-radius: 0.75rem !important;
+}
+
+/* Form Styles */
+.form-control:focus, .form-range:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 56, 92, 0.15) !important;
+}
+.form-label {
+  font-size: 0.9rem;
+  letter-spacing: 0.2px;
+}
+
+/* Footer Styling */
+.hover-brand {
+  transition: var(--transition);
+}
+.hover-brand:hover {
+  color: var(--primary-color) !important;
+  transform: scale(1.1);
+}
+.hover-underline:hover {
+  text-decoration: underline !important;
+  color: var(--primary-color) !important;
+}
+
+/* Icons */
+.fa-compass {
+  transition: var(--transition);
+}
+.navbar-brand:hover .fa-compass {
+  transform: rotate(45deg);
+}
+
+/* Detail page image styling */
+.show-img {
+  border-radius: 1rem !important;
+}
+
+/* Category Filters Container */
+.categories-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 2rem;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+.categories-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Category Filter Tag */
+.category-filter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: var(--transition);
+  cursor: pointer;
+  opacity: 0.75;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 0.5rem;
+  white-space: nowrap;
+}
+.category-filter i {
+  font-size: 1.4rem;
+}
+.category-filter:hover {
+  color: var(--text-dark);
+  opacity: 1;
+  border-bottom-color: var(--text-secondary);
+  transform: translateY(-2px);
+}
+.category-filter.active {
+  color: var(--primary-color);
+  opacity: 1;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+/* Interactive Map Styling */
+#map {
+  height: 380px;
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+}
+
+/* Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  border-radius: 0.75rem !important;
+  padding: 4px 6px !important;
+  box-shadow: var(--card-shadow) !important;
+  border: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px 16px !important;
+}
+
+.leaflet-popup-close-button {
+  padding: 8px !important;
+  font-size: 14px !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ─── Core Component Theme Overrides ─────────────────────────────────────── */
+@media (min-width: 768px) {
+  .border-end-md {
+    border-right: 1px solid var(--border-color) !important;
+  }
+}
+
+.card {
+  background-color: var(--card-bg) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-color) !important;
+}
+
+.card-body {
+  background-color: var(--card-bg) !important;
+  color: var(--text-dark) !important;
+}
+
+.navbar {
+  background-color: var(--nav-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+footer {
+  background-color: var(--footer-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Inputs & Form Elements */
+.form-control, .form-select, .input-group-text {
+  background-color: var(--input-bg) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-color) !important;
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: var(--input-bg) !important;
+  color: var(--text-dark) !important;
+}
+
+.form-control::placeholder {
+  color: var(--text-secondary) !important;
+  opacity: 0.6;
+}
+
+/* Alert Boxes & Badges */
+.alert {
+  border-color: var(--border-color) !important;
+}
+
+.alert-light {
+  background-color: var(--card-bg) !important;
+  color: var(--text-dark) !important;
+}
+
+.badge.bg-light {
+  background-color: var(--badge-bg) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Table Overrides */
+.table {
+  color: var(--text-dark) !important;
+  --bs-table-bg: var(--card-bg) !important;
+  --bs-table-hover-bg: var(--badge-bg) !important;
+  --bs-table-color: var(--text-dark) !important;
+  --bs-table-border-color: var(--border-color) !important;
+}
+
+.table-light {
+  --bs-table-bg: var(--badge-bg) !important;
+  --bs-table-color: var(--text-dark) !important;
+}
+
+/* Chat Overrides */
+.card-footer {
+  background-color: var(--card-footer-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+#chat-messages {
+  background-color: var(--chat-bg) !important;
+}
+
+#chat-messages .border {
+  background-color: var(--chat-bubble-other) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Leaflet Popup Content Theme Support */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background-color: var(--card-bg) !important;
+  color: var(--text-dark) !important;
+}
+
+/* Bootstrap Utility Overrides for Themes */
+[data-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-white {
+  background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-body-light,
+[data-bs-theme="dark"] .bg-light,
+[data-bs-theme="dark"] .bg-body-light {
+  background-color: var(--badge-bg) !important;
+}
+
+[data-theme="dark"] .border,
+[data-theme="dark"] .border-top,
+[data-theme="dark"] .border-bottom,
+[data-theme="dark"] .border-start,
+[data-theme="dark"] .border-end,
+[data-bs-theme="dark"] .border,
+[data-bs-theme="dark"] .border-top,
+[data-bs-theme="dark"] .border-bottom,
+[data-bs-theme="dark"] .border-start,
+[data-bs-theme="dark"] .border-end {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .text-dark,
+[data-bs-theme="dark"] .text-dark {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] .text-body-secondary,
+[data-bs-theme="dark"] .text-muted,
+[data-bs-theme="dark"] .text-body-secondary {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-secondary,
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .btn-outline-dark,
+[data-bs-theme="dark"] .btn-outline-dark {
+  color: var(--text-dark) !important;
+  border-color: var(--text-dark) !important;
+}
+
+[data-theme="dark"] .btn-outline-dark:hover,
+[data-bs-theme="dark"] .btn-outline-dark:hover {
+  background-color: var(--text-dark) !important;
+  color: var(--card-bg) !important;
+}
+
+/* Global Transition Smoothness */
+body#START, .card, .navbar, footer, .form-control, .form-select, input, select, textarea, button, a {
+  transition: background-color 0.25s ease, color 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Scrollbars for Dark Mode */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }

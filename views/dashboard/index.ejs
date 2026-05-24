@@ -1,0 +1,269 @@
+<% layout("/layouts/boilerplate") %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="row justify-content-center my-4">
+  <div class="col-lg-11">
+    
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+      <div>
+        <h2 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-line text-danger me-2"></i>Host Dashboard</h2>
+        <p class="text-muted mb-0">Track your property analytics, bookings, and revenue</p>
+      </div>
+      <a href="/listings/new" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
+        <i class="fa-solid fa-plus me-1"></i>List New Property
+      </a>
+    </div>
+
+    <!-- Statistics cards row -->
+    <div class="row g-4 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-3 p-3 bg-danger-subtle text-danger"><i class="fa-solid fa-hotel fs-4"></i></div>
+            <div>
+              <span class="text-muted small d-block">My Listings</span>
+              <h3 class="fw-bold text-dark mb-0"><%= totalListings %></h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-3 p-3 bg-success-subtle text-success"><i class="fa-solid fa-receipt fs-4"></i></div>
+            <div>
+              <span class="text-muted small d-block">Total Bookings</span>
+              <h3 class="fw-bold text-dark mb-0"><%= totalBookingsCount %></h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-3 p-3 bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-check fs-4"></i></div>
+            <div>
+              <span class="text-muted small d-block">Active Stays</span>
+              <h3 class="fw-bold text-dark mb-0"><%= activeReservations %></h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-3 p-3 bg-warning-subtle text-warning"><i class="fa-solid fa-indian-rupee-sign fs-4"></i></div>
+            <div>
+              <span class="text-muted small d-block">Total Revenue</span>
+              <h3 class="fw-bold text-dark mb-0">&#8377; <%= totalEarnings.toLocaleString("en-IN") %></h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Chart & Quick Overview -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+          <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-simple text-danger me-2"></i>Monthly Revenue Analytics</h5>
+          <div style="position: relative; height: 300px; width: 100%;">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Mini Property list -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+          <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-house-chimney text-danger me-2"></i>My Properties</h5>
+          <div class="overflow-y-auto" style="max-height: 290px;">
+            <% if (listings.length === 0) { %>
+              <p class="text-muted small text-center py-4">No properties listed yet.</p>
+            <% } else { %>
+              <% for(let listing of listings) { %>
+                <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                  <img src="<%= listing.image || '/images/default.jpg' %>" alt="<%= listing.title %>" class="rounded-3" style="width: 50px; height: 40px; object-fit: cover;">
+                  <div class="flex-grow-1 min-w-0">
+                    <h6 class="fw-bold text-dark mb-0 text-truncate"><%= listing.title %></h6>
+                    <small class="text-muted">&#8377; <%= listing.price.toLocaleString("en-IN") %> / night</small>
+                  </div>
+                  <a href="/listings/<%= listing._id %>/edit" class="btn btn-sm btn-light border p-1 rounded-circle" title="Edit"><i class="fa-solid fa-pen text-secondary fs-7" style="width: 24px;"></i></a>
+                </div>
+              <% } %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ad Network Center -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-rectangle-ad text-danger me-2"></i>Sponsored Ad Network</h5>
+          <small class="text-muted">Earn revenue from family-friendly travel ads displayed on your listings</small>
+        </div>
+        <div class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 fw-bold text-uppercase" style="font-size: 11px;">
+          Active & Monetized
+        </div>
+      </div>
+      
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="border rounded-4 p-3 d-flex align-items-center gap-3">
+            <div class="bg-primary-subtle text-primary rounded-3 p-2.5"><i class="fa-solid fa-eye fs-5"></i></div>
+            <div>
+              <span class="text-muted small d-block">Ad Impressions</span>
+              <h4 class="fw-bold text-dark mb-0"><%= adImpressions.toLocaleString("en-IN") %></h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="border rounded-4 p-3 d-flex align-items-center gap-3">
+            <div class="bg-info-subtle text-info rounded-3 p-2.5"><i class="fa-solid fa-arrow-pointer fs-5"></i></div>
+            <div>
+              <span class="text-muted small d-block">Ad Clicks</span>
+              <h4 class="fw-bold text-dark mb-0"><%= adClicks.toLocaleString("en-IN") %></h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="border rounded-4 p-3 d-flex align-items-center gap-3">
+            <div class="bg-warning-subtle text-warning rounded-3 p-2.5"><i class="fa-solid fa-wallet fs-5"></i></div>
+            <div>
+              <span class="text-muted small d-block">Ad Revenue Earned</span>
+              <h4 class="fw-bold text-success mb-0">&#8377; <%= adEarnings.toFixed(2) %></h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bookings Log table -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+      <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-clock-rotate-left text-danger me-2"></i>Recent Booking Reservations</h5>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="min-width: 700px;">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Property</th>
+              <th scope="col">Guest</th>
+              <th scope="col">Check-In</th>
+              <th scope="col">Check-Out</th>
+              <th scope="col">Total Paid</th>
+              <th scope="col">Status</th>
+              <th scope="col">Payment Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (bookings.length === 0) { %>
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">No guest reservations found.</td>
+              </tr>
+            <% } else { %>
+              <% for(let b of bookings) { %>
+                <tr>
+                  <td class="fw-bold text-dark"><%= b.listing ? b.listing.title : 'Deleted Property' %></td>
+                  <td>
+                    <a href="/profile/<%= b.user ? b.user._id : '#' %>" class="text-decoration-none text-dark hover-red">
+                      @<%= b.user ? b.user.username : 'Guest' %>
+                    </a>
+                  </td>
+                  <td><%= new Date(b.checkIn).toLocaleDateString("en-IN") %></td>
+                  <td><%= new Date(b.checkOut).toLocaleDateString("en-IN") %></td>
+                  <td class="fw-bold text-danger">&#8377; <%= b.totalPrice.toLocaleString("en-IN") %></td>
+                  <td>
+                    <% if (b.status === 'paid') { %>
+                      <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold uppercase">Paid</span>
+                    <% } else if (b.status === 'cancelled') { %>
+                      <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold uppercase">Cancelled</span>
+                    <% } else if (b.status === 'refunded') { %>
+                      <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1 fw-bold uppercase">Refunded</span>
+                    <% } else { %>
+                      <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fw-bold uppercase"><%= b.status %></span>
+                    <% } %>
+                  </td>
+                  <td class="font-monospace text-muted small"><%= b.paymentId %></td>
+                </tr>
+              <% } %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Chart.js configuration script -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const ctx = document.getElementById('revenueChart');
+    if (!ctx) return;
+    
+    // Get colors matching the dark/light mode dynamically
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    const textDark = isDark ? "#f3f4f6" : "#222222";
+    const gridColor = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)";
+
+    const labels = <%- JSON.stringify(chartLabels) %>;
+    const data = <%- JSON.stringify(chartData) %>;
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Revenue (₹)',
+          data: data,
+          borderColor: '#ff385c',
+          backgroundColor: 'rgba(255, 56, 92, 0.15)',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 3,
+          pointBackgroundColor: '#ff385c',
+          pointHoverRadius: 7
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: textDark
+            }
+          },
+          y: {
+            grid: {
+              color: gridColor
+            },
+            ticks: {
+              color: textDark,
+              callback: function(value) {
+                return '₹' + value.toLocaleString("en-IN");
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Theme changes updates chart text colors dynamically
+    const observer = new MutationObserver(() => {
+      // Simple reload to refresh Chart.js layout colors cleanly
+      location.reload();
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  });
+</script>

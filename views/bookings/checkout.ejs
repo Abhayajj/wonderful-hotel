@@ -1,0 +1,310 @@
+<% layout("/layouts/boilerplate") %>
+
+<!-- Razorpay Checkout Script (only if key exists) -->
+<% if (razorpayKeyId) { %>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<% } %>
+
+<div class="row justify-content-center my-5">
+  <div class="col-md-8 col-lg-6">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+
+      <!-- Header Banner -->
+      <div style="background: linear-gradient(135deg, #ff385c, #e61e4d); padding: 2rem;">
+        <div class="d-flex align-items-center gap-3">
+          <% if (listing.image) { %>
+            <img src="<%= listing.image %>" class="rounded-3 shadow-sm border border-2 border-white" style="width: 80px; height: 60px; object-fit: cover; flex-shrink: 0;">
+          <% } %>
+          <div class="text-white">
+            <h4 class="fw-bold mb-0"><%= listing.title %></h4>
+            <small style="opacity: 0.9;"><i class="fa-solid fa-location-dot me-1"></i><%= listing.location %>, <%= listing.country %></small>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <!-- Booking Summary -->
+        <h6 class="fw-bold text-secondary text-uppercase small mb-3"><i class="fa-solid fa-receipt me-2 text-danger"></i>Booking Summary</h6>
+        
+        <div class="bg-light rounded-4 p-3 mb-4 border">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary small">Check-In</span>
+            <span class="fw-bold small text-dark">
+              <%= new Date(checkIn).toLocaleDateString("en-IN", { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) %>
+            </span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary small">Check-Out</span>
+            <span class="fw-bold small text-dark">
+              <%= new Date(checkOut).toLocaleDateString("en-IN", { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) %>
+            </span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary small">&#8377; <%= listing.price.toLocaleString("en-IN") %> × <%= nights %> night<%= nights > 1 ? 's' : '' %></span>
+            <span class="fw-bold small text-dark">&#8377; <%= totalPrice.toLocaleString("en-IN") %></span>
+          </div>
+          <hr class="my-2 border-secondary opacity-25">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">Total Amount</span>
+            <span class="fw-bold text-danger fs-4">&#8377; <%= totalPrice.toLocaleString("en-IN") %></span>
+          </div>
+        </div>
+
+        <!-- Payment Method Tabs -->
+        <h6 class="fw-bold text-secondary text-uppercase small mb-3"><i class="fa-solid fa-credit-card me-2 text-danger"></i>Choose Payment Method</h6>
+        
+        <ul class="nav nav-pills nav-fill mb-4 bg-light p-1 rounded-pill border" id="paymentTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill fw-bold" id="razorpay-tab" data-bs-toggle="tab" data-bs-target="#razorpay-pane" type="button" role="tab" aria-selected="true">
+              <i class="fa-solid fa-wallet me-2"></i>Razorpay Gateway
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold" id="upi-tab" data-bs-toggle="tab" data-bs-target="#upi-pane" type="button" role="tab" aria-selected="false">
+              <i class="fa-solid fa-qrcode me-2"></i>UPI QR Code
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="paymentTabContent">
+          <!-- Razorpay Tab Pane -->
+          <div class="tab-pane fade show active" id="razorpay-pane" role="tabpanel" tabindex="0">
+            <% if (razorpayKeyId) { %>
+              <button id="pay-btn" class="btn btn-danger w-100 py-3 rounded-pill fw-bold shadow-sm fs-5">
+                <i class="fa-solid fa-lock me-2"></i>Pay with Razorpay
+              </button>
+              <p class="text-center text-muted small mt-3 mb-0">
+                <i class="fa-solid fa-shield-halved me-1 text-success"></i>
+                Secured by Razorpay · Supports Cards, UPI, Netbanking & Wallets.
+              </p>
+            <% } else { %>
+              <div class="text-center p-3 border border-dashed rounded-4 bg-light">
+                <i class="fa-solid fa-circle-exclamation text-warning fs-3 mb-2"></i>
+                <h6 class="fw-bold text-dark">Razorpay Key Config Missing</h6>
+                <p class="text-muted small mb-0">
+                  Razorpay credentials are not defined in the environment. Please use the <strong>UPI QR Code</strong> option to simulate and complete your booking checkout.
+                </p>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- UPI QR Code Tab Pane -->
+          <div class="tab-pane fade text-center" id="upi-pane" role="tabpanel" tabindex="0">
+            <div class="p-3 border rounded-4 bg-light shadow-sm">
+              <div class="mb-3">
+                <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold text-uppercase" style="font-size: 11px;">
+                  <i class="fa-solid fa-bolt me-1 animate-pulse"></i> Instant Verification
+                </span>
+              </div>
+              
+              <!-- QR Code Container -->
+              <div class="position-relative d-inline-block p-3 bg-white rounded-4 shadow-sm border mb-3">
+                <% 
+                  const upiMerchant = "wonderfull@okaxis";
+                  const upiName = "WonderFull Stays";
+                  const upiUrl = `upi://pay?pa=${upiMerchant}&pn=${encodeURIComponent(upiName)}&am=${totalPrice}&cu=INR&tn=Booking%20Stay%20WonderFull`;
+                  const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
+                %>
+                <img src="<%= qrCodeApiUrl %>" alt="UPI QR Code" class="img-fluid" style="width: 200px; height: 200px;">
+              </div>
+
+              <h6 class="fw-bold text-dark mb-1">Scan QR Code to Pay</h6>
+              <p class="text-muted small mb-3">Open any UPI app (GPay, PhonePe, Paytm, BHIM) and scan the QR code to process pay of <strong>₹<%= totalPrice.toLocaleString("en-IN") %></strong>.</p>
+              
+              <!-- Timer -->
+              <div class="d-flex align-items-center justify-content-center gap-2 mb-3 text-danger fw-bold small">
+                <i class="fa-regular fa-clock"></i> Code expires in <span id="timer">05:00</span>
+              </div>
+
+              <!-- UTR Number Input Field -->
+              <div class="mb-4 text-start">
+                <label for="upi_utr" class="form-label small fw-bold text-secondary uppercase mb-1">Enter 12-Digit UPI Transaction ID (UTR)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-secondary border-end-0"><i class="fa-solid fa-hashtag"></i></span>
+                  <input type="text" id="upi_utr" class="form-control rounded-end-3" placeholder="e.g. 987654321012" pattern="\d{12}" minlength="12" maxlength="12" required>
+                </div>
+                <div class="invalid-feedback d-none" id="utr-error">Please enter a valid 12-digit numeric UPI UTR number.</div>
+                <small class="text-muted d-block mt-1" style="font-size: 11px;">You can copy the 12-digit UTR/Ref No. from GPay, PhonePe, Paytm, or BHIM after payment.</small>
+              </div>
+
+              <!-- Simulation button -->
+              <button id="verify-upi-btn" class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm fs-5">
+                <i class="fa-solid fa-circle-check me-2"></i>Verify UPI Payment
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <a href="/listings/<%= listing._id %>" class="text-secondary small text-decoration-none hover-red">
+            <i class="fa-solid fa-arrow-left me-1"></i>Cancel and go back
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Payment Badges -->
+    <div class="text-center mt-4">
+      <small class="text-muted">Safe &amp; Encrypted Payments</small>
+      <div class="d-flex justify-content-center gap-2 mt-2 flex-wrap">
+        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-semibold small">
+          <i class="fa-solid fa-mobile-screen me-1 text-success"></i> UPI
+        </span>
+        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-semibold small">
+          <i class="fa-solid fa-credit-card me-1 text-primary"></i> Debit/Credit Card
+        </span>
+        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-semibold small">
+          <i class="fa-solid fa-building-columns me-1 text-info"></i> Net Banking
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden verification forms -->
+<form id="verify-form" method="POST" action="/bookings/verify" style="display: none;">
+  <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+  <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+  <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+  <input type="hidden" name="listing_id" value="<%= listing._id %>">
+  <input type="hidden" name="checkIn" value="<%= checkIn %>">
+  <input type="hidden" name="checkOut" value="<%= checkOut %>">
+  <input type="hidden" name="totalPrice" value="<%= totalPrice %>">
+</form>
+
+<form id="upi-confirm-form" method="POST" action="/bookings/upi-confirm" style="display: none;">
+  <input type="hidden" name="listing_id" value="<%= listing._id %>">
+  <input type="hidden" name="checkIn" value="<%= checkIn %>">
+  <input type="hidden" name="checkOut" value="<%= checkOut %>">
+  <input type="hidden" name="totalPrice" value="<%= totalPrice %>">
+  <input type="hidden" name="upi_utr" id="upi_utr_hidden">
+</form>
+
+<!-- Verification Overlay -->
+<div id="payment-overlay" class="position-fixed w-100 h-100 top-0 start-0 d-none justify-content-center align-items-center flex-column" style="background: rgba(0, 0, 0, 0.85); z-index: 9999; color: #fff;">
+  <div class="spinner-border text-danger mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+  <h4 class="fw-bold" id="overlay-status">Verifying Transaction...</h4>
+  <p class="text-muted small">Please do not close this window or press back button.</p>
+</div>
+
+<script>
+  // ── RAZORPAY HANDLER ──
+  <% if (razorpayKeyId) { %>
+  document.getElementById("pay-btn").addEventListener("click", function () {
+    const options = {
+      key: "<%= razorpayKeyId %>",
+      amount: <%= totalPrice * 100 %>,  // in paise
+      currency: "INR",
+      name: "WonderFull",
+      description: "<%= listing.title %> · <%= nights %> night<%= nights > 1 ? 's' : '' %>",
+      order_id: "<%= order ? order.id : '' %>",
+      prefill: {
+        name: "<%= user.username %>",
+        email: "<%= user.email %>",
+      },
+      theme: {
+        color: "#ff385c",
+      },
+      handler: function (response) {
+        // Show verification overlay
+        const overlay = document.getElementById("payment-overlay");
+        overlay.classList.remove("d-none");
+        overlay.classList.add("d-flex");
+        
+        document.getElementById("razorpay_order_id").value = response.razorpay_order_id;
+        document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+        document.getElementById("razorpay_signature").value = response.razorpay_signature;
+        
+        setTimeout(() => {
+          document.getElementById("verify-form").submit();
+        }, 1500);
+      },
+      modal: {
+        ondismiss: function () {
+          const btn = document.getElementById("pay-btn");
+          btn.textContent = "Try Payment Again";
+          btn.classList.remove("btn-danger");
+          btn.classList.add("btn-warning", "text-dark");
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on("payment.failed", function (response) {
+      alert("Payment failed: " + response.error.description);
+    });
+    rzp.open();
+  });
+  <% } %>
+
+  // ── UPI TIMER & VERIFICATION ──
+  let timerInterval;
+  document.getElementById("upi-tab").addEventListener("shown.bs.tab", function () {
+    clearInterval(timerInterval);
+    let time = 300; // 5 minutes
+    const display = document.getElementById("timer");
+    
+    timerInterval = setInterval(() => {
+      let minutes = Math.floor(time / 60);
+      let seconds = time % 60;
+      seconds = seconds < 10 ? "0" + seconds : seconds;
+      minutes = minutes < 10 ? "0" + minutes : minutes;
+      
+      display.textContent = `${minutes}:${seconds}`;
+      if (--time < 0) {
+        clearInterval(timerInterval);
+        display.textContent = "Expired";
+        document.getElementById("verify-upi-btn").disabled = true;
+        document.getElementById("verify-upi-btn").textContent = "QR Code Expired";
+      }
+    }, 1000);
+  });
+
+  // Reset timer on going back to Razorpay
+  document.getElementById("razorpay-tab").addEventListener("shown.bs.tab", function () {
+    clearInterval(timerInterval);
+  });
+
+  // Verify UPI Button handler (simulation)
+  document.getElementById("verify-upi-btn").addEventListener("click", function () {
+    const utrInput = document.getElementById("upi_utr");
+    const utrError = document.getElementById("utr-error");
+    const utrValue = utrInput.value.trim();
+    
+    // Check if valid 12 digits
+    const utrRegex = /^\d{12}$/;
+    if (!utrRegex.test(utrValue)) {
+      utrError.classList.remove("d-none");
+      utrInput.classList.add("is-invalid");
+      utrInput.focus();
+      return;
+    } else {
+      utrError.classList.add("d-none");
+      utrInput.classList.remove("is-invalid");
+      utrInput.classList.add("is-valid");
+    }
+
+    // Set value in hidden form
+    document.getElementById("upi_utr_hidden").value = utrValue;
+
+    const overlay = document.getElementById("payment-overlay");
+    const statusText = document.getElementById("overlay-status");
+    
+    overlay.classList.remove("d-none");
+    overlay.classList.add("d-flex");
+    
+    statusText.textContent = "Connecting to Bank UPI Server...";
+    
+    setTimeout(() => {
+      statusText.textContent = "Verifying UPI UTR Number " + utrValue + "...";
+    }, 1000);
+
+    setTimeout(() => {
+      statusText.textContent = "Payment Verified! Enrolling Stay...";
+      setTimeout(() => {
+        document.getElementById("upi-confirm-form").submit();
+      }, 1000);
+    }, 2500);
+  });
+</script>

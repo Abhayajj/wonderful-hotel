@@ -1,20 +1,45 @@
-<nav class="navbar navbar-expand-md bg-body-light sticky-top">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/"><i class="fa-solid fa-compass"></i></a>
-    <button class="navbar-toggler" 
+<nav class="navbar navbar-expand-md navbar-light bg-white border-bottom sticky-top py-3">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/listings">
+      <i class="fa-solid fa-compass text-danger fs-3"></i>
+      <span class="fw-bold tracking-tight text-dark fs-4">WonderFull</span>
+    </a>
+    <button class="navbar-toggler border-0" 
       type="button" 
       data-bs-toggle="collapse"
-      data-bs-target="#navbarNavAltMarkup">
+      data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup"
+      aria-expanded="false"
+      aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-link active" href="/">Home</a>
-        <a class="nav-link" href="/listings">All Listings</a>
-        <a class="nav-link" href="/listings/new">Add New Listing</a>
-        <a class="nav-link" href="/listings/recommend">Your Recommendation</a>
-        <a class="nav-link" href="/listings/best">Our Best </a>
-          <a class="nav-link" href="/listings/rated">Top Rated</a>
+      <div class="navbar-nav ms-auto gap-2 align-items-md-center">
+        <a class="nav-link px-3" href="/listings">Explore</a>
+        <a class="nav-link px-3" href="/listings/best">Our Best</a>
+        <a class="nav-link px-3" href="/listings/rated">Top Rated</a>
+        <a class="nav-link px-3" href="/listings/recommend">Share Feedback</a>
+        <a class="btn btn-danger btn-sm px-3 rounded-pill ms-md-2" href="/listings/new">Host Your Place</a>
+        
+        <% if (!currUser) { %>
+          <a class="nav-link px-3 fw-bold" href="/login">Log In</a>
+          <a class="btn btn-outline-dark btn-sm px-3 rounded-pill ms-md-1" href="/signup">Sign Up</a>
+        <% } else { %>
+          <% if (currUser.role === 'admin') { %>
+            <a class="nav-link px-3 text-danger fw-bold" href="/admin/dashboard"><i class="fa-solid fa-shield-halved me-1"></i>Admin</a>
+          <% } %>
+          <a class="nav-link px-3" href="/dashboard"><i class="fa-solid fa-chart-line text-danger me-1"></i>Dashboard</a>
+          <a class="nav-link px-3" href="/bookings/my-trips">My Trips</a>
+          <a class="nav-link px-3" href="/chats">Inbox</a>
+          <a class="nav-link px-3" href="/profile">My Profile</a>
+          <a class="nav-link px-3 text-secondary" href="/logout">Log Out</a>
+          <span class="badge bg-light text-dark border py-2 px-3 rounded-pill ms-md-1">
+            <i class="fa-regular fa-user me-1 text-danger"></i><%= currUser.username %>
+          </span>
+        <% } %>
+        <button id="theme-toggle" class="btn btn-link nav-link px-3 d-flex align-items-center justify-content-center" style="border: none; background: none; text-decoration: none;" aria-label="Toggle Theme">
+          <i class="fa-solid fa-moon text-secondary" id="theme-icon"></i>
+        </button>
       </div>
     </div>
   </div>

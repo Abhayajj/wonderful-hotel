@@ -1,22 +1,298 @@
 <% layout('/layouts/boilerplate') -%>
-<h1>All Listings</h1>
-<div class="row row-cols-lg-3">
-  <% for (let listing of allListings) { %>
-    <a href="/listings/<%= listing._id %>" class="listing-link">
-      <div class="card col">
-        <img 
-          src="<%= listing.image %>" 
-          class="card-img-top" 
-          alt="Listing Image" 
-          style="height:20rem" />
-        <div class="card-img-overlay">We have all the best things that you want.</div>
-        <div class="card-body">
-          <p class="card-text"> 
-            <b><%= listing.title %></b> <br />
-            &#8377; <%= listing.price %> /Night
-          </p>
-        </div>
+
+<!-- Leaflet Map Assets -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+<!-- Search Form -->
+<div class="row justify-content-center mb-3">
+  <div class="col-md-6 col-lg-5">
+    <form method="GET" action="/listings" class="needs-validation" novalidate>
+      <div class="input-group shadow-sm border rounded-pill overflow-hidden bg-white">
+        <input type="text" name="q" value="<%= q %>" class="form-control border-0 px-4 py-2.5" placeholder="Search destinations, countries, or cities..." autocomplete="off">
+        <% if (activeCategory && activeCategory !== 'All') { %>
+          <input type="hidden" name="category" value="<%= activeCategory %>">
+        <% } %>
+        <button class="btn btn-danger px-4" type="submit">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
       </div>
+    </form>
+  </div>
+</div>
+
+<!-- Horizontal Categories Slider -->
+<div class="categories-container mb-4">
+  <% 
+    const categories = [
+      { name: "All", icon: "fa-solid fa-border-all" },
+      { name: "Beach", icon: "fa-solid fa-umbrella-beach" },
+      { name: "Mountain", icon: "fa-solid fa-mountain" },
+      { name: "City", icon: "fa-solid fa-city" },
+      { name: "Countryside", icon: "fa-solid fa-mountain-sun" },
+      { name: "Luxury", icon: "fa-solid fa-gem" },
+      { name: "Budget", icon: "fa-solid fa-wallet" },
+      { name: "Treehouse", icon: "fa-solid fa-tree" },
+      { name: "Historic", icon: "fa-solid fa-monument" },
+      { name: "Other", icon: "fa-solid fa-hotel" }
+    ];
+  %>
+  <% for (let cat of categories) { %>
+    <a href="/listings?category=<%= cat.name %><%= q ? '&q=' + encodeURIComponent(q) : '' %>" 
+       class="category-filter <%= activeCategory === cat.name ? 'active' : '' %>">
+      <i class="<%= cat.icon %>"></i>
+      <span><%= cat.name %></span>
     </a>
   <% } %>
 </div>
+
+<!-- Filters Panel and Map Toggle Trigger -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <button class="btn btn-outline-secondary rounded-pill px-4" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse">
+    <i class="fa-solid fa-sliders me-2"></i>Filters
+  </button>
+  
+  <button id="map-toggle-btn" class="btn btn-dark rounded-pill px-4 shadow-sm">
+    <i class="fa-solid fa-map me-2"></i>Show Map
+  </button>
+</div>
+
+<!-- Collapsible Filters Drawer -->
+<div class="collapse mb-4" id="filtersCollapse">
+  <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    <form method="GET" action="/listings">
+      <% if (q) { %>
+        <input type="hidden" name="q" value="<%= q %>">
+      <% } %>
+      <% if (activeCategory) { %>
+        <input type="hidden" name="category" value="<%= activeCategory %>">
+      <% } %>
+      
+      <div class="row g-4">
+        <!-- Price Range Slider -->
+        <div class="col-md-4 border-end-md">
+          <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-indian-rupee-sign text-danger me-2"></i>Price per Night</h6>
+          <div class="mb-2 d-flex justify-content-between text-secondary small">
+            <span>Min: ₹0</span>
+            <span>Max: <strong class="text-danger">₹<span id="price-val"><%= maxPrice ? Number(maxPrice).toLocaleString("en-IN") : '25,000' %></span></strong></span>
+          </div>
+          <input type="range" class="form-range" min="0" max="50000" step="500" name="maxPrice" id="price-slider" value="<%= maxPrice || '25000' %>">
+        </div>
+        
+        <!-- Amenities Checked options -->
+        <div class="col-md-8">
+          <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-circle-info text-danger me-2"></i>Filter by Amenities</h6>
+          <div class="row g-2">
+            <% const filterableAmenities = ["Wifi", "AC", "Pool", "Kitchen", "Parking", "TV", "Gym", "Pets Allowed"]; %>
+            <% for (let am of filterableAmenities) { %>
+              <% const checked = activeAmenities.includes(am) ? "checked" : ""; %>
+              <div class="col-6 col-sm-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="amenities[]" value="<%= am %>" id="filter-<%= am %>" <%= checked %>>
+                  <label class="form-check-label small text-secondary" for="filter-<%= am %>"><%= am %></label>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+        <a href="/listings" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Clear Filters</a>
+        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold">Apply Filters</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Active Filters Banner -->
+<% if ((q && q.trim() !== "") || (activeCategory && activeCategory !== "All")) { %>
+  <div class="alert alert-light border shadow-sm rounded-4 py-3 px-4 d-flex justify-content-between align-items-center mb-4">
+    <div class="text-secondary small">
+      <i class="fa-solid fa-filter me-2 text-danger"></i>
+      <% if (q && q.trim() !== "") { %>
+        Showing results for "<strong class="text-dark"><%= q %></strong>"
+      <% } %>
+      <% if (activeCategory && activeCategory !== "All") { %>
+        <%= q && q.trim() !== "" ? "in" : "Showing category" %> <strong class="text-dark"><%= activeCategory %></strong>
+      <% } %>
+      <span class="ms-1">(<%= allListings.length %> spaces found)</span>
+    </div>
+    <a href="/listings" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold text-decoration-none">
+      Clear Filters
+    </a>
+  </div>
+<% } %>
+
+<!-- Sponsored Ad Banner -->
+<%- include("../includes/ad-banner.ejs", { listingId: null }) %>
+
+<!-- Header and Add Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold text-dark mb-0">Explore Destinations</h2>
+  <a href="/listings/new" class="btn btn-danger rounded-pill px-4"><i class="fa-solid fa-plus me-2"></i>Add Listing</a>
+</div>
+
+<!-- Listings Grid Container -->
+<div id="listings-grid-container">
+  <div class="row row-cols-lg-3 row-cols-md-2 row-cols-1 g-4 mb-5">
+    <% if (allListings.length === 0) { %>
+      <div class="col-12 text-center py-5">
+        <i class="fa-regular fa-folder-open fs-1 text-secondary opacity-50 mb-3 d-block"></i>
+        <h4 class="fw-bold text-dark">No places found!</h4>
+        <p class="text-secondary mb-0">Try search terms or choose a different category filter.</p>
+      </div>
+    <% } else { %>
+      <% for (let listing of allListings) { %>
+        <div class="col">
+          <a href="/listings/<%= listing._id %>" class="listing-link text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden card-hover">
+              <div class="position-relative">
+                <img 
+                  src="<%= listing.image || '/images/default.jpg' %>" 
+                  class="card-img-top" 
+                  alt="Listing Image" 
+                  style="height: 18rem; object-fit: cover;" />
+                <div class="card-img-overlay d-flex flex-column justify-content-end p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0)); opacity: 0; transition: opacity 0.3s ease;">
+                  <span class="text-white fw-semibold">View Details <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                </div>
+              </div>
+              <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <h5 class="card-title fw-bold text-dark mb-0 text-truncate" style="max-width: 75%;"><%= listing.title %></h5>
+                  <span class="badge bg-light text-secondary border px-2 py-1 rounded-pill small fw-semibold" style="font-size: 10px;"><%= listing.category %></span>
+                </div>
+                <p class="card-text text-secondary mb-0">
+                  <span class="fw-bold text-dark">&#8377; <%= listing.price.toLocaleString("en-IN") %></span> <span class="text-muted small">/ night</span>
+                </p>
+              </div>
+            </div>
+          </a>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+</div>
+
+<!-- Index Map View (Toggled) -->
+<div id="index-map-container" class="d-none mb-5">
+  <div id="index-map" style="height: 60vh; border-radius: 1rem; box-shadow: var(--card-shadow);"></div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Price Range Slider Live Display
+    const priceSlider = document.getElementById("price-slider");
+    const priceVal = document.getElementById("price-val");
+    if (priceSlider && priceVal) {
+      priceSlider.addEventListener("input", (e) => {
+        priceVal.textContent = Number(e.target.value).toLocaleString("en-IN");
+      });
+    }
+
+    // Map/List View Toggler
+    const mapToggleBtn = document.getElementById("map-toggle-btn");
+    const gridContainer = document.getElementById("listings-grid-container");
+    const mapContainer = document.getElementById("index-map-container");
+
+    let isMapView = false;
+    let indexMapInitialized = false;
+
+    if (mapToggleBtn && gridContainer && mapContainer) {
+      mapToggleBtn.addEventListener("click", () => {
+        isMapView = !isMapView;
+        if (isMapView) {
+          gridContainer.classList.add("d-none");
+          mapContainer.classList.remove("d-none");
+          mapToggleBtn.innerHTML = `<i class="fa-solid fa-list me-2"></i>Show List`;
+          
+          if (!indexMapInitialized) {
+            initIndexMap();
+            indexMapInitialized = true;
+          }
+        } else {
+          gridContainer.classList.remove("d-none");
+          mapContainer.classList.add("d-none");
+          mapToggleBtn.innerHTML = `<i class="fa-solid fa-map me-2"></i>Show Map`;
+        }
+      });
+    }
+
+    function initIndexMap() {
+      const data = <%- JSON.stringify(allListings.map(l => ({
+        id: l._id,
+        title: l.title,
+        price: l.price,
+        location: l.location,
+        country: l.country,
+        image: l.image,
+        coordinates: l.geometry && l.geometry.coordinates ? l.geometry.coordinates : null
+      }))) %>;
+
+      if (!data || data.length === 0) {
+        document.getElementById("index-map").innerHTML = `
+          <div class="d-flex h-100 align-items-center justify-content-center text-muted border rounded-4 bg-light">
+            No coordinates available to map.
+          </div>`;
+        return;
+      }
+
+      let centerLat = 22.0;
+      let centerLng = 77.0;
+
+      const validListing = data.find(l => l.coordinates && l.coordinates.length === 2);
+      if (validListing) {
+        centerLat = validListing.coordinates[1];
+        centerLng = validListing.coordinates[0];
+      }
+
+      const map = L.map('index-map', {
+        scrollWheelZoom: false
+      }).setView([centerLat, centerLng], 5);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
+
+      const markers = L.markerClusterGroup();
+
+      data.forEach(l => {
+        if (!l.coordinates || l.coordinates.length < 2) return;
+        const lat = l.coordinates[1];
+        const lng = l.coordinates[0];
+
+        const customIcon = L.divIcon({
+          className: 'custom-leaflet-marker',
+          html: `<div style="background-color: #ff385c; width: 22px; height: 22px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);"></div>`,
+          iconSize: [22, 22],
+          iconAnchor: [11, 11]
+        });
+
+        const popupContent = `
+          <div style="font-family: 'Plus Jakarta Sans', sans-serif; width: 180px;">
+            <img src="${l.image || '/images/default.jpg'}" style="width: 100%; height: 90px; object-fit: cover; border-radius: 6px; margin-bottom: 6px;">
+            <h6 style="font-weight: bold; font-size: 13px; margin: 0 0 2px 0;">
+              <a href="/listings/${l.id}" target="_blank" style="color: #222; text-decoration: none;">${l.title}</a>
+            </h6>
+            <p style="font-size: 11px; margin: 0 0 4px 0; color: #717171;"><i class="fa-solid fa-location-dot me-1 text-danger"></i>${l.location}, ${l.country}</p>
+            <div style="font-weight: bold; font-size: 12px; color: #ff385c;">₹ ${l.price.toLocaleString("en-IN")} <span style="font-size: 10px; font-weight: normal; color: #717171;">/ night</span></div>
+          </div>
+        `;
+
+        const marker = L.marker([lat, lng], { icon: customIcon }).bindPopup(popupContent);
+        markers.addLayer(marker);
+      });
+
+      map.addLayer(markers);
+
+      if (markers.getBounds().isValid()) {
+        map.fitBounds(markers.getBounds(), { padding: [50, 50] });
+      }
+    }
+  });
+</script>

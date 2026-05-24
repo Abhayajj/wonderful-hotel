@@ -1,66 +1,90 @@
 <% layout("/layouts/boilerplate") %>
-<div class="row mt-3">
-  <div class="col-8 offset-2">
-    <h3>Add Your Own Listing</h3>
-    <form method="POST" action="/listings" novalidate class="needs-validation">
-      <div class="mb-3">
-        <label for="title" class="form-label">Title</label>
-        <input name="listing[title]" placeholder="Add a catchy title" type="text" class="form-control" required
-        />
-        <div class="valid-feedback">Title looks Good!</div>
-      </div>
-  
-      <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea name="listing[description]" class="form-control" required ></textarea>
-      </div>
-      <div class="mb-3">
-        <label for="image" class="form-label">Image</label>
-        <input
-          name="listing[image]"
-          placeholder="Enter image URL/Link"
-          type="text"
-          class="form-control"
-        />
-      </div>
-      <div class="row">
-        <div class="mb-3 col-4">
-          <label for="price" class="form-label">Price</label>
-          <input
-            name="listing[price]"
-            placeholder="1200"
-            type="number"
-            class="form-control"
-            required
-          />
-          <div class="invalid-feedback">Enter a valid Price</div>
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-10">
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+      <h3 class="fw-bold text-dark mb-4"><i class="fa-solid fa-hotel text-danger me-2"></i>Host Your Place</h3>
+      <form method="POST" action="/listings" enctype="multipart/form-data" novalidate class="needs-validation">
+        
+        <div class="mb-3">
+          <label for="title" class="form-label fw-semibold text-secondary">Title</label>
+          <input name="listing[title]" placeholder="Add a catchy title" type="text" class="form-control rounded-3" required />
+          <div class="valid-feedback">Title looks Good!</div>
+          <div class="invalid-feedback">Please enter a title.</div>
         </div>
-        <div class="mb-3 col-md-8">
-          <label for="country" class="form-label">Country</label>
-          <input
-            name="listing[country]"
-            placeholder="INDIA"
-            type="text"
-            class="form-control"
-           required
-          />
-          <div class="invalid-feedback">Enter a valid Country</div>
+    
+        <div class="mb-3">
+          <label for="description" class="form-label fw-semibold text-secondary">Description</label>
+          <textarea name="listing[description]" placeholder="Write a detailed description of the space..." class="form-control rounded-3" rows="4" required></textarea>
+          <div class="invalid-feedback">Please enter a description.</div>
         </div>
-      </div>
-      <div class="mb-3">
-        <label for="location" class="form-label">Location</label>
-        <input
-          name="listing[location]"
-          placeholder="Jaipur"
-          type="text"
-          class="form-control"
-        required
-        />
-        <div class="invalid-feedback">Enter a valid Location</div>
-      </div>
-      <br /><br />
-      <button class="btn btn-dark add-btn">Add</button>
-      <br></br>
-    </form>
+
+        <div class="row">
+          <div class="mb-3 col-md-6">
+            <label for="category" class="form-label fw-semibold text-secondary">Category</label>
+            <select name="listing[category]" class="form-select rounded-3" required>
+              <option value="Other" selected>Other</option>
+              <option value="Beach">Beach</option>
+              <option value="Mountain">Mountain</option>
+              <option value="City">City</option>
+              <option value="Countryside">Countryside</option>
+              <option value="Luxury">Luxury</option>
+              <option value="Budget">Budget</option>
+              <option value="Treehouse">Treehouse</option>
+              <option value="Historic">Historic</option>
+            </select>
+          </div>
+          <div class="mb-3 col-md-6">
+            <label for="image" class="form-label fw-semibold text-secondary">Cover Image Link (Optional URL)</label>
+            <input name="listing[image]" placeholder="Enter image URL/Link" type="text" class="form-control rounded-3" />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="images" class="form-label fw-semibold text-secondary">Upload Listing Images (Multiple supported)</label>
+          <input name="listing[images]" type="file" class="form-control rounded-3" multiple />
+          <small class="text-muted">You can upload up to 6 images to showcase your property in a gallery carousel.</small>
+        </div>
+
+        <div class="row">
+          <div class="mb-3 col-sm-4">
+            <label for="price" class="form-label fw-semibold text-secondary">Price per Night</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 rounded-start-3">&#8377;</span>
+              <input name="listing[price]" placeholder="1200" type="number" class="form-control border-start-0 rounded-end-3" required />
+              <div class="invalid-feedback">Please enter a valid price.</div>
+            </div>
+          </div>
+          <div class="mb-3 col-sm-8">
+            <label for="country" class="form-label fw-semibold text-secondary">Country</label>
+            <input name="listing[country]" placeholder="e.g. India" type="text" class="form-control rounded-3" required />
+            <div class="invalid-feedback">Please enter a country.</div>
+          </div>
+        </div>
+
+        <!-- Amenities Checklist -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-secondary d-block">Amenities Available</label>
+          <div class="row g-2 px-1">
+            <% const availableAmenities = ["Wifi", "AC", "Pool", "Kitchen", "Parking", "TV", "Gym", "Pets Allowed"]; %>
+            <% for (let am of availableAmenities) { %>
+              <div class="col-6 col-sm-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="listing[amenities][]" value="<%= am %>" id="am-<%= am %>">
+                  <label class="form-check-label small text-secondary" for="am-<%= am %>"><%= am %></label>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="location" class="form-label fw-semibold text-secondary">Location / City</label>
+          <input name="listing[location]" placeholder="e.g. Jaipur" type="text" class="form-control rounded-3" required />
+          <div class="invalid-feedback">Please enter a location.</div>
+        </div>
+
+        <button class="btn btn-danger w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm add-btn">List Property</button>
+      </form>
+    </div>
   </div>
 </div>
