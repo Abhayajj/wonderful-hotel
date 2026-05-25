@@ -92,7 +92,7 @@ app.use(
         "'self'",
         "blob:",
         "data:",
-        "https://images.unsplash.com",
+        "https://*.unsplash.com",
         "https://images.pexels.com",
         "https://res.cloudinary.com",
         "https://maps.googleapis.com",
