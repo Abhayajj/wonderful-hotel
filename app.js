@@ -179,98 +179,103 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("error", { err });
 });
 
-const PORT = process.env.PORT || 8080;
-const server = app.listen(PORT, () => {
-  console.log(`✅ Server is running at http://localhost:${PORT}`);
-});
+let io;
+if (require.main === module) {
+  const PORT = process.env.PORT || 8080;
+  const server = app.listen(PORT, () => {
+    console.log(`✅ Server is running at http://localhost:${PORT}`);
+  });
 
-// Socket.io WebSockets Integration
-const socketio = require("socket.io");
-const io = socketio(server);
+  // Socket.io WebSockets Integration
+  const socketio = require("socket.io");
+  io = socketio(server);
 
-io.on("connection", (socket) => {
-  console.log(`⚡ Socket connected: ${socket.id}`);
+  io.on("connection", (socket) => {
+    console.log(`⚡ Socket connected: ${socket.id}`);
 
-  socket.on("join_room", async (data) => {
-    const { roomId, userId, otherId, listingId } = data;
-    socket.join(roomId);
-    console.log(`🚪 Socket ${socket.id} joined room ${roomId}`);
+    socket.on("join_room", async (data) => {
+      const { roomId, userId, otherId, listingId } = data;
+      socket.join(roomId);
+      console.log(`🚪 Socket ${socket.id} joined room ${roomId}`);
 
-    if (userId && otherId && listingId) {
+      if (userId && otherId && listingId) {
+        try {
+          const Message = require("./models/message");
+          await Message.updateMany(
+            { listing: listingId, sender: otherId, receiver: userId, read: false },
+            { read: true }
+          );
+          socket.to(roomId).emit("messages_read", { readerId: userId });
+        } catch (err) {
+          console.error("❌ Socket mark-as-read error:", err);
+        }
+      }
+    });
+
+    socket.on("send_message", async (data) => {
+      const { senderId, receiverId, listingId, text, image, roomId } = data;
+      if ((!text || text.trim() === "") && (!image || image.trim() === "")) return;
+
       try {
         const Message = require("./models/message");
-        await Message.updateMany(
-          { listing: listingId, sender: otherId, receiver: userId, read: false },
-          { read: true }
-        );
-        socket.to(roomId).emit("messages_read", { readerId: userId });
+        const newMessage = new Message({
+          sender: senderId,
+          receiver: receiverId,
+          listing: listingId,
+          text: text ? text.trim() : "",
+          image: image || "",
+        });
+        await newMessage.save();
+
+        io.to(roomId).emit("receive_message", {
+          _id: newMessage._id,
+          sender: senderId,
+          text: newMessage.text,
+          image: newMessage.image,
+          read: newMessage.read,
+          createdAt: newMessage.createdAt,
+        });
       } catch (err) {
-        console.error("❌ Socket mark-as-read error:", err);
+        console.error("❌ Socket message persistence failed:", err);
       }
+    });
+
+    socket.on("typing", (data) => {
+      const { roomId, username } = data;
+      socket.to(roomId).emit("typing", { username });
+    });
+
+    socket.on("stop_typing", (data) => {
+      const { roomId } = data;
+      socket.to(roomId).emit("stop_typing");
+    });
+
+    socket.on("mark_read", async (data) => {
+      const { messageId, roomId } = data;
+      try {
+        const Message = require("./models/message");
+        await Message.findByIdAndUpdate(messageId, { read: true });
+        socket.to(roomId).emit("messages_read", { messageId });
+      } catch (err) {
+        console.error("❌ Socket mark_read failed:", err);
+      }
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`🔌 Socket disconnected: ${socket.id}`);
+    });
+  });
+
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`\n❌ Port ${PORT} is already in use!`);
+      console.error(`   Run this command to fix it, then try again:\n`);
+      console.error(`   npx kill-port ${PORT}\n`);
+      process.exit(1);
+    } else {
+      throw err;
     }
   });
+}
 
-  socket.on("send_message", async (data) => {
-    const { senderId, receiverId, listingId, text, image, roomId } = data;
-    if ((!text || text.trim() === "") && (!image || image.trim() === "")) return;
-
-    try {
-      const Message = require("./models/message");
-      const newMessage = new Message({
-        sender: senderId,
-        receiver: receiverId,
-        listing: listingId,
-        text: text ? text.trim() : "",
-        image: image || "",
-      });
-      await newMessage.save();
-
-      io.to(roomId).emit("receive_message", {
-        _id: newMessage._id,
-        sender: senderId,
-        text: newMessage.text,
-        image: newMessage.image,
-        read: newMessage.read,
-        createdAt: newMessage.createdAt,
-      });
-    } catch (err) {
-      console.error("❌ Socket message persistence failed:", err);
-    }
-  });
-
-  socket.on("typing", (data) => {
-    const { roomId, username } = data;
-    socket.to(roomId).emit("typing", { username });
-  });
-
-  socket.on("stop_typing", (data) => {
-    const { roomId } = data;
-    socket.to(roomId).emit("stop_typing");
-  });
-
-  socket.on("mark_read", async (data) => {
-    const { messageId, roomId } = data;
-    try {
-      const Message = require("./models/message");
-      await Message.findByIdAndUpdate(messageId, { read: true });
-      socket.to(roomId).emit("messages_read", { messageId });
-    } catch (err) {
-      console.error("❌ Socket mark_read failed:", err);
-    }
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`🔌 Socket disconnected: ${socket.id}`);
-  });
-});
-
-server.on("error", (err) => {
-  if (err.code === "EADDRINUSE") {
-    console.error(`\n❌ Port ${PORT} is already in use!`);
-    console.error(`   Run this command to fix it, then try again:\n`);
-    console.error(`   npx kill-port ${PORT}\n`);
-    process.exit(1);
-  } else {
-    throw err;
-  }
-});
+module.exports = app;
