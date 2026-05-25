@@ -2,6 +2,8 @@ const request = require("supertest");
 const mongoose = require("mongoose");
 const app = require("../app");
 
+jest.setTimeout(30000);
+
 beforeAll(async () => {
   if (mongoose.connection.readyState !== 1) {
     await new Promise((resolve) => {
