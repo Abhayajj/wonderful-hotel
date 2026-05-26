@@ -23,7 +23,12 @@ router.post(
           return next(err);
         }
         req.flash("success", "Welcome to WonderFull!");
-        res.redirect("/listings");
+        req.session.save((err) => {
+          if (err) {
+            return next(err);
+          }
+          res.redirect("/listings");
+        });
       });
     } catch (e) {
       req.flash("error", e.message);
@@ -45,10 +50,15 @@ router.post(
     failureRedirect: "/login",
     failureFlash: true,
   }),
-  async (req, res) => {
+  async (req, res, next) => {
     req.flash("success", `Welcome back to WonderFull, ${req.user.username}!`);
     let redirectUrl = res.locals.redirectUrl || "/listings";
-    res.redirect(redirectUrl);
+    req.session.save((err) => {
+      if (err) {
+        return next(err);
+      }
+      res.redirect(redirectUrl);
+    });
   }
 );
 
@@ -59,7 +69,12 @@ router.get("/logout", (req, res, next) => {
       return next(err);
     }
     req.flash("success", "You are logged out successfully!");
-    res.redirect("/listings");
+    req.session.save((err) => {
+      if (err) {
+        return next(err);
+      }
+      res.redirect("/listings");
+    });
   });
 });
 
