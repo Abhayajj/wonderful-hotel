@@ -207,3 +207,89 @@ router.get(
     });
   })
 );
+
+// ─── Forgot Password Routes ──────────────────────────────────────────────────
+const crypto = require("crypto");
+
+// GET /forgot - render page
+router.get("/forgot", (req, res) => {
+  res.render("users/forgot.ejs");
+});
+
+// POST /forgot - request reset token
+router.post("/forgot", wrapAsync(async (req, res, next) => {
+  const { email } = req.body;
+  if (!email || email.trim() === "") {
+    req.flash("error", "Email address is required.");
+    return res.redirect("/forgot");
+  }
+
+  const user = await User.findOne({ email: { $regex: new RegExp("^" + email.trim() + "$", "i") } });
+  if (!user) {
+    req.flash("error", "No account with that email address exists.");
+    return res.redirect("/forgot");
+  }
+
+  const token = crypto.randomBytes(20).toString("hex");
+  user.resetPasswordToken = token;
+  user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration
+  await user.save();
+
+  // For testing, generate a simulation link and display it in the success flash message
+  const resetUrl = `${req.protocol}://${req.headers.host}/reset/${token}`;
+  req.flash("success", `Password reset token generated! Click here to reset: <a href="${resetUrl}" class="fw-bold text-decoration-underline text-success">${resetUrl}</a>`);
+  res.redirect("/forgot");
+}));
+
+// GET /reset/:token - render reset password form
+router.get("/reset/:token", wrapAsync(async (req, res) => {
+  const user = await User.findOne({
+    resetPasswordToken: req.params.token,
+    resetPasswordExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    req.flash("error", "Password reset token is invalid or has expired.");
+    return res.redirect("/forgot");
+  }
+
+  res.render("users/reset.ejs", { token: req.params.token });
+}));
+
+// POST /reset/:token - update password
+router.post("/reset/:token", wrapAsync(async (req, res, next) => {
+  const { password, confirmPassword } = req.body;
+  if (!password || password.length < 8) {
+    req.flash("error", "Password must be at least 8 characters long.");
+    return res.redirect(`/reset/${req.params.token}`);
+  }
+
+  if (password !== confirmPassword) {
+    req.flash("error", "Passwords do not match.");
+    return res.redirect(`/reset/${req.params.token}`);
+  }
+
+  const user = await User.findOne({
+    resetPasswordToken: req.params.token,
+    resetPasswordExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    req.flash("error", "Password reset token is invalid or has expired.");
+    return res.redirect("/forgot");
+  }
+
+  await user.setPassword(password);
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  req.login(user, (err) => {
+    if (err) return next(err);
+    req.flash("success", "Success! Your password has been reset and you are now logged in.");
+    req.session.save((err) => {
+      if (err) return next(err);
+      res.redirect("/listings");
+    });
+  });
+}));

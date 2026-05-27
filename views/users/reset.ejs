@@ -1,0 +1,48 @@
+<% layout("/layouts/boilerplate") %>
+<div class="row justify-content-center my-5">
+  <div class="col-md-6 col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle p-3 mb-2" style="width: 60px; height: 60px;">
+          <i class="fa-solid fa-lock-open fs-3"></i>
+        </div>
+        <h3 class="fw-bold text-dark mb-1">Reset Password</h3>
+        <p class="text-muted small">Choose a secure new password for your account</p>
+      </div>
+
+      <form method="POST" action="/reset/<%= token %>" novalidate class="needs-validation">
+        <div class="mb-4">
+          <label for="password" class="form-label fw-semibold text-secondary">New Password</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-secondary"><i class="fa-solid fa-lock"></i></span>
+            <input name="password" id="password" placeholder="Min. 8 characters" type="password" class="form-control border-start-0 rounded-end-3" minlength="8" required />
+            <div class="invalid-feedback">Password must be at least 8 characters.</div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="confirmPassword" class="form-label fw-semibold text-secondary">Confirm New Password</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-secondary"><i class="fa-solid fa-check-double"></i></span>
+            <input name="confirmPassword" id="confirmPassword" placeholder="Confirm your new password" type="password" class="form-control border-start-0 rounded-end-3" minlength="8" required />
+            <div class="invalid-feedback">Please confirm your new password.</div>
+          </div>
+        </div>
+
+        <button class="btn btn-danger w-100 py-2.5 rounded-pill fw-bold shadow-sm mb-3">Reset Password</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Quick validation to check if password and confirmPassword match
+  document.querySelector("form").addEventListener("submit", function(e) {
+    const password = document.getElementById("password").value;
+    const confirm = document.getElementById("confirmPassword").value;
+    if (password !== confirm) {
+      e.preventDefault();
+      alert("Passwords do not match!");
+    }
+  });
+</script>
