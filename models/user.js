@@ -49,6 +49,19 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.plugin(passportLocalMongoose);
+userSchema.plugin(passportLocalMongoose, {
+  findByUsername: function(model, queryParameters) {
+    let searchKey = queryParameters.username;
+    if (!searchKey && queryParameters.$or && queryParameters.$or[0]) {
+      searchKey = queryParameters.$or[0].username;
+    }
+    return model.findOne({
+      $or: [
+        { username: searchKey },
+        { email: searchKey }
+      ]
+    });
+  }
+});
 
 module.exports = mongoose.model("User", userSchema);
