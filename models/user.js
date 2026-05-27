@@ -37,6 +37,12 @@ const userSchema = new Schema({
     type: Number,
     default: 0,
   },
+  googleId: {
+    type: String,
+  },
+  facebookId: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

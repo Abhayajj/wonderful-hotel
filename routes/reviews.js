@@ -6,6 +6,9 @@ const { reviewSchema } = require("../schema");
 const Review = require("../models/review");
 const Listing = require("../models/listing");
 const { isLoggedIn, isReviewAuthor } = require("../utils/middleware");
+const multer = require("multer");
+const { storage, cloudinaryEnabled } = require("../config/cloudinary");
+const upload = multer({ storage });
 
 const validateReview = (req, res, next) => {
   const { error } = reviewSchema.validate(req.body);
@@ -21,6 +24,7 @@ const validateReview = (req, res, next) => {
 router.post(
   "/",
   isLoggedIn,
+  upload.single("reviewImage"),
   validateReview,
   wrapAsync(async (req, res) => {
     let listing = await Listing.findById(req.params.id);
@@ -31,6 +35,13 @@ router.post(
     
     let newReview = new Review(req.body.review);
     newReview.author = req.user._id;
+
+    if (req.file) {
+      newReview.image = {
+        url: cloudinaryEnabled ? req.file.path : `/uploads/${req.file.filename}`,
+        filename: req.file.filename
+      };
+    }
 
     listing.reviews.push(newReview);
 

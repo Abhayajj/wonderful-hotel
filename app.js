@@ -139,6 +139,77 @@ app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
 
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID || "temp_google_id",
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || "temp_google_secret",
+    callbackURL: "/auth/google/callback",
+    proxy: true
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
+      if (!email) {
+        return done(null, false, { message: "No email address returned from Google." });
+      }
+      let user = await User.findOne({ $or: [{ googleId: profile.id }, { email: email }] });
+      if (!user) {
+        user = new User({
+          googleId: profile.id,
+          username: profile.displayName.replace(/\s+/g, "").toLowerCase() + Math.floor(Math.random() * 1000),
+          email: email,
+          profileImage: profile.photos && profile.photos[0] ? profile.photos[0].value : ""
+        });
+        await user.save();
+      } else if (!user.googleId) {
+        user.googleId = profile.id;
+        if (!user.profileImage && profile.photos && profile.photos[0]) {
+          user.profileImage = profile.photos[0].value;
+        }
+        await user.save();
+      }
+      return done(null, user);
+    } catch (err) {
+      return done(err);
+    }
+  }
+));
+
+passport.use(new FacebookStrategy({
+    clientID: process.env.FACEBOOK_APP_ID || "temp_facebook_id",
+    clientSecret: process.env.FACEBOOK_APP_SECRET || "temp_facebook_secret",
+    callbackURL: "/auth/facebook/callback",
+    profileFields: ["id", "displayName", "emails", "photos"],
+    proxy: true
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      const email = profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.id}@facebook.com`;
+      let user = await User.findOne({ $or: [{ facebookId: profile.id }, { email: email }] });
+      if (!user) {
+        user = new User({
+          facebookId: profile.id,
+          username: profile.displayName.replace(/\s+/g, "").toLowerCase() + Math.floor(Math.random() * 1000),
+          email: email,
+          profileImage: profile.photos && profile.photos[0] ? profile.photos[0].value : ""
+        });
+        await user.save();
+      } else if (!user.facebookId) {
+        user.facebookId = profile.id;
+        if (!user.profileImage && profile.photos && profile.photos[0]) {
+          user.profileImage = profile.photos[0].value;
+        }
+        await user.save();
+      }
+      return done(null, user);
+    } catch (err) {
+      return done(err);
+    }
+  }
+));
+
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 

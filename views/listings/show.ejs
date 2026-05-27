@@ -56,6 +56,28 @@
       </div>
     </div>
 
+    <!-- Host Details Card -->
+    <% if (listing.owner) { %>
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <h5 class="fw-bold mb-3"><i class="fa-solid fa-address-card text-danger me-2"></i>About the Host</h5>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <img src="<%= listing.owner.profileImage || '/images/default-avatar.png' %>" class="rounded-circle border" style="width: 60px; height: 60px; object-fit: cover;">
+          <div class="flex-grow-1">
+            <h6 class="fw-bold mb-1">Hosted by @<%= listing.owner.username %></h6>
+            <p class="text-secondary small mb-2"><%= listing.owner.bio || "Welcome to my home! Feel free to message me with any questions about the property or reservation." %></p>
+            <div class="d-flex flex-wrap gap-3 text-muted small">
+              <span><i class="fa-solid fa-envelope text-danger me-1"></i><%= listing.owner.email %></span>
+              <% if (listing.owner.phone) { %>
+                <span><i class="fa-solid fa-phone text-danger me-1"></i><%= listing.owner.phone %></span>
+              <% } else { %>
+                <span><i class="fa-solid fa-phone text-danger me-1"></i>+91 98765 43210 (Demo Contact)</span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
     <!-- Edit/Delete Action Buttons (Only visible to the Owner) -->
     <% if (currUser && listing.owner && (listing.owner._id ? listing.owner._id.equals(currUser._id) : listing.owner.equals(currUser._id))) { %>
       <div class="d-flex gap-3 mb-5">
@@ -76,7 +98,7 @@
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-white">
       <h4 class="fw-bold mb-3"><i class="fa-solid fa-star text-warning me-2"></i>Leave a Review</h4>
       <% if (currUser) { %>
-        <form action="/listings/<%= listing._id %>/reviews" method="POST" novalidate class="needs-validation">
+        <form action="/listings/<%= listing._id %>/reviews" method="POST" enctype="multipart/form-data" novalidate class="needs-validation">
           <div class="mb-3">
             <label for="rating" class="form-label fw-semibold text-muted">Rating</label>
             <div class="d-flex align-items-center gap-2">
@@ -88,6 +110,10 @@
             <label for="comment" class="form-label fw-semibold text-muted">Comments</label>
             <textarea name="review[comment]" id="comment" cols="30" rows="4" class="form-control rounded-3" placeholder="Share your experience..." required></textarea>
             <div class="invalid-feedback">Please enter a comment.</div>
+          </div>
+          <div class="mb-3">
+            <label for="reviewImage" class="form-label fw-semibold text-muted">Upload a photo (optional)</label>
+            <input type="file" name="reviewImage" id="reviewImage" class="form-control rounded-3">
           </div>
           <button class="btn btn-danger px-4 py-2 rounded-pill fw-bold">Submit Review</button>
         </form>
@@ -181,6 +207,12 @@
                       </div>
                     </div>
                     <p class="card-text text-secondary mb-3 small" style="line-height: 1.5;"><%= review.comment %></p>
+                    
+                    <% if (review.image && review.image.url) { %>
+                      <div class="mb-3">
+                        <img src="<%= review.image.url %>" class="img-fluid rounded-3 shadow-sm" style="max-height: 160px; width: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="window.open('<%= review.image.url %>', '_blank')">
+                      </div>
+                    <% } %>
                     
                     <% if (review.reply && review.reply.text) { %>
                       <div class="mt-2 p-2 bg-light rounded-3 border-start border-3 border-danger small">

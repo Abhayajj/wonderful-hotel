@@ -78,6 +78,56 @@ router.get("/logout", (req, res, next) => {
   });
 });
 
+// ─── OAuth Routes ────────────────────────────────────────────────────────────
+
+// Google OAuth Route
+router.get("/auth/google", (req, res, next) => {
+  if (!process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID.startsWith("temp")) {
+    req.flash("error", "Google Login is not configured. Please add your credentials in .env file.");
+    return res.redirect("/login");
+  }
+  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
+});
+
+// Google OAuth Callback Route
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login", failureFlash: true }),
+  (req, res, next) => {
+    req.flash("success", `Welcome back to WonderFull, ${req.user.username}!`);
+    req.session.save((err) => {
+      if (err) {
+        return next(err);
+      }
+      res.redirect("/listings");
+    });
+  }
+);
+
+// Facebook OAuth Route
+router.get("/auth/facebook", (req, res, next) => {
+  if (!process.env.FACEBOOK_APP_ID || process.env.FACEBOOK_APP_ID.startsWith("temp")) {
+    req.flash("error", "Facebook Login is not configured. Please add your credentials in .env file.");
+    return res.redirect("/login");
+  }
+  passport.authenticate("facebook", { scope: ["email"] })(req, res, next);
+});
+
+// Facebook OAuth Callback Route
+router.get(
+  "/auth/facebook/callback",
+  passport.authenticate("facebook", { failureRedirect: "/login", failureFlash: true }),
+  (req, res, next) => {
+    req.flash("success", `Welcome back to WonderFull, ${req.user.username}!`);
+    req.session.save((err) => {
+      if (err) {
+        return next(err);
+      }
+      res.redirect("/listings");
+    });
+  }
+);
+
 module.exports = router;
 
 // ─── USER PROFILE ROUTES ─────────────────────────────────────────────────────

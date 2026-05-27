@@ -1,0 +1,183 @@
+<!-- Floating Chatbot Toggle Button -->
+<button id="chatbot-toggle" class="btn btn-danger rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1000; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+  <i class="fa-solid fa-robot fs-3"></i>
+  <span class="position-absolute top-0 start-100 translate-middle p-2 bg-success border border-light rounded-circle" style="margin-left: -5px; margin-top: 5px;">
+    <span class="visually-hidden">Online</span>
+  </span>
+</button>
+
+<!-- Chatbot Window -->
+<div id="chatbot-window" class="card border-0 shadow-lg rounded-4 d-none" style="position: fixed; bottom: 100px; right: 30px; width: 360px; height: 480px; z-index: 1000; overflow: hidden; backdrop-filter: blur(15px); background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0,0,0,0.08) !important;">
+  <!-- Header -->
+  <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center py-3 border-0">
+    <div class="d-flex align-items-center gap-2">
+      <div class="bg-white text-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+        <i class="fa-solid fa-robot"></i>
+      </div>
+      <div>
+        <h6 class="fw-bold mb-0" style="font-size: 14px;">WonderBot</h6>
+        <small class="text-white-50" style="font-size: 11px;">Online &bull; Virtual Assistant</small>
+      </div>
+    </div>
+    <button type="button" id="chatbot-close" class="btn-close btn-close-white" aria-label="Close"></button>
+  </div>
+
+  <!-- Messages Body -->
+  <div class="card-body p-3 d-flex flex-column justify-content-between" style="height: calc(100% - 130px); overflow: hidden;">
+    <!-- Messages Scroll Area -->
+    <div id="chatbot-messages" class="flex-grow-1 mb-3" style="overflow-y: auto; padding-right: 5px;">
+      <!-- Welcome Message -->
+      <div class="d-flex gap-2 mb-3">
+        <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
+          <i class="fa-solid fa-robot text-xs" style="font-size: 11px;"></i>
+        </div>
+        <div class="p-2.5 rounded-3 bg-light text-dark small" style="max-width: 80%; line-height: 1.4;">
+          Namaste! 🙏 Welcome to WonderFull. I am WonderBot, your virtual assistant. How can I help you today?
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Help Option Chips -->
+    <div class="mb-2">
+      <p class="text-muted mb-1.5 small" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Suggested Questions</p>
+      <div class="d-flex flex-wrap gap-1.5" id="chatbot-chips">
+        <button class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 small text-start border-light-subtle bg-white text-dark" style="font-size: 11px; font-weight: 500;" onclick="sendQuickQuery('How do I book a stay?')">How to book?</button>
+        <button class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 small text-start border-light-subtle bg-white text-dark" style="font-size: 11px; font-weight: 500;" onclick="sendQuickQuery('How can I contact the host?')">Contact Host</button>
+        <button class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 small text-start border-light-subtle bg-white text-dark" style="font-size: 11px; font-weight: 500;" onclick="sendQuickQuery('What is the cancellation policy?')">Refund Policy</button>
+        <button class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 small text-start border-light-subtle bg-white text-dark" style="font-size: 11px; font-weight: 500;" onclick="sendQuickQuery('Is my payment secure?')">Is payment secure?</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Input -->
+  <div class="card-footer bg-white border-top p-2" style="height: 60px;">
+    <form id="chatbot-form" class="d-flex gap-1.5 align-items-center h-100 m-0">
+      <input type="text" id="chatbot-input" class="form-control form-control-sm rounded-pill border-light-subtle py-2 px-3 small" placeholder="Type a message..." autocomplete="off" style="font-size: 12px;">
+      <button class="btn btn-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; flex-shrink: 0;" type="submit">
+        <i class="fa-solid fa-paper-plane text-xs"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Chatbot Javascript Logic -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const chatbotToggle = document.getElementById("chatbot-toggle");
+    const chatbotWindow = document.getElementById("chatbot-window");
+    const chatbotClose = document.getElementById("chatbot-close");
+    const chatbotForm = document.getElementById("chatbot-form");
+    const chatbotInput = document.getElementById("chatbot-input");
+    const chatbotMessages = document.getElementById("chatbot-messages");
+
+    if (chatbotToggle && chatbotWindow && chatbotClose) {
+      // Toggle Window open/close
+      chatbotToggle.addEventListener("click", () => {
+        chatbotWindow.classList.toggle("d-none");
+        scrollToBottom();
+      });
+
+      chatbotClose.addEventListener("click", () => {
+        chatbotWindow.classList.add("d-none");
+      });
+    }
+
+    if (chatbotForm) {
+      chatbotForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const query = chatbotInput.value.trim();
+        if (!query) return;
+
+        addMessage(query, "user");
+        chatbotInput.value = "";
+        
+        // Bot typing simulation
+        simulateBotResponse(query);
+      });
+    }
+
+    window.sendQuickQuery = function(text) {
+      addMessage(text, "user");
+      simulateBotResponse(text);
+    };
+
+    function addMessage(text, sender) {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `d-flex gap-2 mb-3 ${sender === 'user' ? 'justify-content-end' : ''}`;
+
+      let avatarHtml = "";
+      if (sender === "bot") {
+        avatarHtml = `
+          <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
+            <i class="fa-solid fa-robot" style="font-size: 11px;"></i>
+          </div>
+        `;
+      }
+
+      const bubbleClass = sender === "user" ? "bg-danger text-white" : "bg-light text-dark";
+
+      messageDiv.innerHTML = `
+        ${sender === 'bot' ? avatarHtml : ''}
+        <div class="p-2.5 rounded-3 ${bubbleClass} small" style="max-width: 80%; line-height: 1.4; word-break: break-word;">
+          ${text}
+        </div>
+      `;
+
+      chatbotMessages.appendChild(messageDiv);
+      scrollToBottom();
+    }
+
+    function addTypingIndicator() {
+      const indicatorDiv = document.createElement("div");
+      indicatorDiv.className = "d-flex gap-2 mb-3"
+      indicatorDiv.id = "bot-typing-indicator";
+      indicatorDiv.innerHTML = `
+        <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px;">
+          <i class="fa-solid fa-robot" style="font-size: 11px;"></i>
+        </div>
+        <div class="p-2.5 rounded-3 bg-light text-secondary small d-flex align-items-center gap-1" style="max-width: 80%;">
+          <span class="spinner-grow spinner-grow-sm" style="width: 6px; height: 6px; animation-duration: 0.75s;" role="status"></span>
+          <span class="spinner-grow spinner-grow-sm" style="width: 6px; height: 6px; animation-duration: 0.75s; animation-delay: 0.15s;" role="status"></span>
+          <span class="spinner-grow spinner-grow-sm" style="width: 6px; height: 6px; animation-duration: 0.75s; animation-delay: 0.3s;" role="status"></span>
+        </div>
+      `;
+      chatbotMessages.appendChild(indicatorDiv);
+      scrollToBottom();
+    }
+
+    function removeTypingIndicator() {
+      const indicator = document.getElementById("bot-typing-indicator");
+      if (indicator) {
+        indicator.remove();
+      }
+    }
+
+    function scrollToBottom() {
+      chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function simulateBotResponse(userText) {
+      addTypingIndicator();
+      
+      const query = userText.toLowerCase();
+      let response = "I'm sorry, I'm still learning. If you have specific questions about a property, you can message the host directly using the 'Message Host' button, or reach out to them via the email and phone number listed under 'About the Host'.";
+
+      if (query.includes("book") || query.includes("reserve") || query.includes("how to")) {
+        response = "To book a stay, select your check-in and check-out dates on the right side card and click **Reserve & Book Stay**. If payments are enabled, you will be redirected to complete the payment via Razorpay.";
+      } else if (query.includes("host") || query.includes("owner") || query.includes("contact") || query.includes("phone") || query.includes("email")) {
+        response = "You can contact the host by clicking the **Message Host** button at the top of the details page (requires login). Additionally, you can find their email address and phone number under the **About the Host** section.";
+      } else if (query.includes("refund") || query.includes("cancellation") || query.includes("cancel")) {
+        response = "Our standard policy is a full refund for bookings cancelled 24 hours prior to check-in. Standard system service fees are non-refundable. Please go to **My Trips** in your Dashboard to cancel a booking.";
+      } else if (query.includes("secure") || query.includes("payment") || query.includes("razorpay")) {
+        response = "Yes! All payments are processed securely through Razorpay, a highly secure payment gateway. We support UPI, Cards, Netbanking, and Wallets.";
+      } else if (query.includes("hello") || query.includes("hi") || query.includes("hey")) {
+        response = "Hello! Hope you are having a wonderful day. How can I help you find or book your next destination?";
+      }
+
+      setTimeout(() => {
+        removeTypingIndicator();
+        addMessage(response, "bot");
+      }, 750);
+    }
+  });
+</script>

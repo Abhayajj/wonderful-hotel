@@ -11,6 +11,10 @@ const reviewSchema = new Schema({
     text: { type: String },
     repliedAt: { type: Date },
   },
+  image: {
+    url: String,
+    filename: String,
+  },
   flagged: { type: Boolean, default: false },
   flaggedReason: { type: String, default: "" },
 });
