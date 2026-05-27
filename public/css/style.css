@@ -320,7 +320,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Booking Widget Floating Card */
-.sticky-top {
+.card.sticky-top {
   top: 100px !important;
 }
 
