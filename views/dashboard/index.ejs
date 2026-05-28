@@ -54,9 +54,10 @@
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
           <div class="d-flex align-items-center gap-3">
             <div class="rounded-3 p-3 bg-warning-subtle text-warning"><i class="fa-solid fa-indian-rupee-sign fs-4"></i></div>
-            <div>
-              <span class="text-muted small d-block">Total Revenue</span>
-              <h3 class="fw-bold text-dark mb-0">&#8377; <%= totalEarnings.toLocaleString("en-IN") %></h3>
+            <div class="w-100 min-w-0">
+              <span class="text-muted small d-block text-truncate">My Earnings (80%)</span>
+              <h4 class="fw-bold text-success mb-1 text-truncate">&#8377; <%= (totalEarnings * 0.8).toLocaleString("en-IN") %></h4>
+              <small class="text-muted d-block text-truncate" style="font-size: 10px;">Platform Fee (20%): &#8377;<%= (totalEarnings * 0.2).toLocaleString("en-IN") %></small>
             </div>
           </div>
         </div>
@@ -98,48 +99,7 @@
       </div>
     </div>
 
-    <!-- Ad Network Center -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-        <div>
-          <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-rectangle-ad text-danger me-2"></i>Sponsored Ad Network</h5>
-          <small class="text-muted">Earn revenue from family-friendly travel ads displayed on your listings</small>
-        </div>
-        <div class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 fw-bold text-uppercase" style="font-size: 11px;">
-          Active & Monetized
-        </div>
-      </div>
-      
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="border rounded-4 p-3 d-flex align-items-center gap-3">
-            <div class="bg-primary-subtle text-primary rounded-3 p-2.5"><i class="fa-solid fa-eye fs-5"></i></div>
-            <div>
-              <span class="text-muted small d-block">Ad Impressions</span>
-              <h4 class="fw-bold text-dark mb-0"><%= adImpressions.toLocaleString("en-IN") %></h4>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="border rounded-4 p-3 d-flex align-items-center gap-3">
-            <div class="bg-info-subtle text-info rounded-3 p-2.5"><i class="fa-solid fa-arrow-pointer fs-5"></i></div>
-            <div>
-              <span class="text-muted small d-block">Ad Clicks</span>
-              <h4 class="fw-bold text-dark mb-0"><%= adClicks.toLocaleString("en-IN") %></h4>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="border rounded-4 p-3 d-flex align-items-center gap-3">
-            <div class="bg-warning-subtle text-warning rounded-3 p-2.5"><i class="fa-solid fa-wallet fs-5"></i></div>
-            <div>
-              <span class="text-muted small d-block">Ad Revenue Earned</span>
-              <h4 class="fw-bold text-success mb-0">&#8377; <%= adEarnings.toFixed(2) %></h4>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Bookings Log table -->
     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
@@ -209,14 +169,14 @@
     const gridColor = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)";
 
     const labels = <%- JSON.stringify(chartLabels) %>;
-    const data = <%- JSON.stringify(chartData) %>;
+    const data = (<%- JSON.stringify(chartData) %>).map(val => Math.round(val * 0.8));
 
     new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [{
-          label: 'Revenue (₹)',
+          label: 'Host Net Earnings (80% Share) (₹)',
           data: data,
           borderColor: '#ff385c',
           backgroundColor: 'rgba(255, 56, 92, 0.15)',

@@ -40,6 +40,21 @@ router.get(
     const Review = require("../models/review");
     const totalFlaggedReviews = await Review.countDocuments({ flagged: true });
 
+    // Aggregate platform-wide ad analytics
+    const adStatsResult = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          earnings: { $sum: "$adEarnings" },
+          impressions: { $sum: "$adImpressions" },
+          clicks: { $sum: "$adClicks" }
+        }
+      }
+    ]);
+    const totalAdEarnings = adStatsResult.length > 0 ? adStatsResult[0].earnings : 0;
+    const totalAdImpressions = adStatsResult.length > 0 ? adStatsResult[0].impressions : 0;
+    const totalAdClicks = adStatsResult.length > 0 ? adStatsResult[0].clicks : 0;
+
     res.render("admin/dashboard", {
       totalUsers,
       totalListings,
@@ -48,6 +63,9 @@ router.get(
       totalRefunded,
       recentBookings,
       totalFlaggedReviews,
+      totalAdEarnings,
+      totalAdImpressions,
+      totalAdClicks,
     });
   })
 );

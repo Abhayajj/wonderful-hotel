@@ -1,5 +1,8 @@
-<% if (process.env.ENABLE_GOOGLE_ADSENSE === "true") { %>
-  <!-- Real Google AdSense Placement -->
+<% if (typeof currUser !== 'undefined' && currUser && currUser.role === 'admin') { %>
+  <!-- Ads completely hidden for Admin account -->
+<% } else { %>
+  <% if (process.env.ENABLE_GOOGLE_ADSENSE === "true") { %>
+    <!-- Real Google AdSense Placement -->
   <div class="card border border-light-subtle shadow-sm rounded-4 overflow-hidden mb-4 p-3 text-center bg-light">
     <div class="d-flex align-items-center justify-content-between mb-2">
       <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5 fw-bold text-uppercase" style="font-size: 8px; letter-spacing: 0.5px;">Sponsored</span>
@@ -132,4 +135,5 @@
       overflow: hidden;
     }
   </style>
+<% } %>
 <% } %>

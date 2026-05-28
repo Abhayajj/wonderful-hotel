@@ -98,6 +98,9 @@ router.post(
           totalPrice,
           razorpayKeyId: RAZORPAY_KEY_ID,
           user: req.user,
+          adminUpiId: process.env.ADMIN_UPI_ID || "wonderfull@okaxis",
+          adminUpiName: process.env.ADMIN_UPI_NAME || "WonderFull Stays",
+          adminUpiQrImage: process.env.ADMIN_UPI_QR_IMAGE || "",
         });
       } catch (err) {
         console.error("Razorpay Error:", err);
@@ -117,6 +120,9 @@ router.post(
       totalPrice,
       razorpayKeyId: "",
       user: req.user,
+      adminUpiId: process.env.ADMIN_UPI_ID || "wonderfull@okaxis",
+      adminUpiName: process.env.ADMIN_UPI_NAME || "WonderFull Stays",
+      adminUpiQrImage: process.env.ADMIN_UPI_QR_IMAGE || "",
     });
   })
 );

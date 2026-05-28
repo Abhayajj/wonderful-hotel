@@ -21,15 +21,26 @@
 <div class="row g-4 mb-5">
   <div class="col-md-6 col-lg-4">
     <div class="card border-0 shadow-sm rounded-4 bg-danger-subtle text-danger-emphasis h-100">
-      <div class="card-body p-4 d-flex align-items-center justify-content-between">
-        <div>
-          <span class="fs-6 fw-semibold text-uppercase tracking-wider opacity-75">Total Revenue</span>
-          <h2 class="fw-extrabold mt-2 mb-0">
-            <%= totalRevenue.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }) %>
-          </h2>
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div>
+            <span class="fs-6 fw-semibold text-uppercase tracking-wider opacity-75">Admin Revenue (20%)</span>
+            <h2 class="fw-extrabold mt-2 mb-0 text-danger">
+              <%= (totalRevenue * 0.2).toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }) %>
+            </h2>
+          </div>
+          <div class="fs-1 opacity-25">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
         </div>
-        <div class="fs-1 opacity-50">
-          <i class="fa-solid fa-indian-rupee-sign"></i>
+        <hr class="my-2 opacity-25">
+        <div class="d-flex justify-content-between text-secondary small">
+          <span>Total Volume (100%):</span>
+          <span class="fw-bold"><%= totalRevenue.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }) %></span>
+        </div>
+        <div class="d-flex justify-content-between text-secondary small">
+          <span>Host Share (80%):</span>
+          <span class="fw-bold"><%= (totalRevenue * 0.8).toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }) %></span>
         </div>
       </div>
     </div>
@@ -103,6 +114,49 @@
         </div>
         <div class="fs-1 opacity-50">
           <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Global Ad Network Center -->
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-5">
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <div>
+      <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-rectangle-ad text-danger me-2"></i>Global Sponsored Ad Network</h5>
+      <small class="text-muted">Total platform traffic and ad revenues across all users</small>
+    </div>
+    <div class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 fw-bold text-uppercase" style="font-size: 11px;">
+      Platform Analytics
+    </div>
+  </div>
+  
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="border rounded-4 p-3 d-flex align-items-center gap-3">
+        <div class="bg-primary-subtle text-primary rounded-3 p-2.5"><i class="fa-solid fa-eye fs-5"></i></div>
+        <div>
+          <span class="text-muted small d-block">Total Ad Impressions</span>
+          <h4 class="fw-bold text-dark mb-0"><%= totalAdImpressions.toLocaleString("en-IN") %></h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="border rounded-4 p-3 d-flex align-items-center gap-3">
+        <div class="bg-info-subtle text-info rounded-3 p-2.5"><i class="fa-solid fa-arrow-pointer fs-5"></i></div>
+        <div>
+          <span class="text-muted small d-block">Total Ad Clicks</span>
+          <h4 class="fw-bold text-dark mb-0"><%= totalAdClicks.toLocaleString("en-IN") %></h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="border rounded-4 p-3 d-flex align-items-center gap-3">
+        <div class="bg-warning-subtle text-warning rounded-3 p-2.5"><i class="fa-solid fa-wallet fs-5"></i></div>
+        <div>
+          <span class="text-muted small d-block">Total Ad Earnings</span>
+          <h4 class="fw-bold text-success mb-0">&#8377; <%= totalAdEarnings.toFixed(2) %></h4>
         </div>
       </div>
     </div>
