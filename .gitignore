@@ -1,2 +1,11 @@
 node_modules/
 .env
+
+# Android Build & IDE files
+android/.gradle/
+android/local.properties
+android/**/build/
+android/.idea/
+android/*.apk
+android/*.ap_
+android/*.aab
